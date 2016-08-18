@@ -16,7 +16,7 @@ import java.net.URL;
 
 public class MovieQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
 
-    private static final String API_KEY = "YOURAPIKEYHERE";
+    private static final String API_KEY = "YOURAPIKEY";
     private static final String LOG_TAG = "MovieQueryAsyncTask";
 
     private static final String BASE_URL = "http://api.themoviedb.org/3/";
@@ -68,9 +68,8 @@ public class MovieQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
             String resultString = buffer.toString();
 
             JSONObject resultObject = new JSONObject(resultString);
-            JSONArray moviesArray = new JSONArray(resultObject.optString("results"));
 
-            return moviesArray;
+            return new JSONArray(resultObject.optString("results"));
 
         } catch (IOException | JSONException e) {
             e.printStackTrace();

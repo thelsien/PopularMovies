@@ -1,6 +1,7 @@
 package apps.nanodegree.thelsien.popularmovies;
 
 import android.app.Fragment;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,6 +11,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.GridView;
 
@@ -50,6 +52,15 @@ public class MainFragment extends Fragment implements MovieQueryAsyncTask.MovieQ
             gridView.setNumColumns(4);
         }
         gridView.setAdapter(mAdapter);
+        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie), mAdapter.getItem(position));
+
+                startActivity(intent);
+            }
+        });
 
         return rootView;
     }

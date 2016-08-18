@@ -12,10 +12,6 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-/**
- * Created by frodo on 2016. 08. 18..
- */
-
 public class MoviesAdapter extends ArrayAdapter<Movie> {
 
     public static final String POSTER_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w342";

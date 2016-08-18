@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">Popular Movies</string>
+    <string name="title_activity_movie_details">Movie details</string>
+
     <string name="action_refresh">Refresh</string>
     <string name="iv_movie_poster_description">Movie poster image</string>
+    <string name="intent_extra_movie">movie_object</string>
+
 </resources>
