@@ -1,4 +1,4 @@
-package apps.nanodegree.thelsien.popularmovies;
+package apps.nanodegree.thelsien.popularmovies.fragments;
 
 import android.app.Fragment;
 import android.content.Intent;
@@ -20,7 +20,13 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainFragment extends Fragment implements MovieQueryAsyncTask.MovieQueryAsyncTaskListener {
+import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
+import apps.nanodegree.thelsien.popularmovies.MoviesAdapter;
+import apps.nanodegree.thelsien.popularmovies.R;
+import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;
+import apps.nanodegree.thelsien.popularmovies.model.Movie;
+
+public class MainFragment extends Fragment implements MoviesListQueryAsyncTask.MoviesListQueryAsyncTaskListener {
 
     private static final String LOG_TAG = "MainFragment";
     private ArrayAdapter<Movie> mAdapter;
@@ -85,8 +91,8 @@ public class MainFragment extends Fragment implements MovieQueryAsyncTask.MovieQ
     }
 
     private void updateMoviesList() {
-        MovieQueryAsyncTask movieQueryAsyncTask = new MovieQueryAsyncTask(this);
-        movieQueryAsyncTask.execute("popular");
+        MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(this);
+        moviesListQueryAsyncTask.execute("popular");
     }
 
     @Override
@@ -94,7 +100,7 @@ public class MainFragment extends Fragment implements MovieQueryAsyncTask.MovieQ
         mAdapter.clear();
         for (int i = 0; i < result.length(); i++) {
             JSONObject movieJSON = result.optJSONObject(i);
-            Movie movie = new Movie(movieJSON.optString("original_title"), movieJSON.optString("poster_path"), movieJSON.optString("overview"), movieJSON.optDouble("vote_average"), movieJSON.optString("release_date"));
+            Movie movie = new Movie(movieJSON.optInt("id"), movieJSON.optString("original_title"), movieJSON.optString("poster_path"), movieJSON.optString("overview"), movieJSON.optDouble("vote_average"), movieJSON.optString("release_date"));
             mAdapter.add(movie);
         }
     }

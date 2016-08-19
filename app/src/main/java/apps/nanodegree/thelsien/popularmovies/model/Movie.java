@@ -1,16 +1,19 @@
-package apps.nanodegree.thelsien.popularmovies;
+package apps.nanodegree.thelsien.popularmovies.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 public class Movie implements Parcelable {
-    String originalTitle;
-    String posterImageUrlPart;
-    String plotSynopsis;
-    double voteAverage;
-    String releaseDate;
+    public int id;
+    public String originalTitle;
+    public String posterImageUrlPart;
+    public String plotSynopsis;
+    public double voteAverage;
+    public String releaseDate;
+    public int runTime = 0;
 
-    public Movie(String originalTitle, String posterImageUrlPart, String plotSynopsis, double voteAverage, String releaseDate) {
+    public Movie(int id, String originalTitle, String posterImageUrlPart, String plotSynopsis, double voteAverage, String releaseDate) {
+        this.id = id;
         this.originalTitle = originalTitle;
         this.posterImageUrlPart = posterImageUrlPart;
         this.plotSynopsis = plotSynopsis;
@@ -19,6 +22,7 @@ public class Movie implements Parcelable {
     }
 
     public Movie(Parcel in) {
+        id = in.readInt();
         originalTitle = in.readString();
         posterImageUrlPart = in.readString();
         plotSynopsis = in.readString();
@@ -33,6 +37,7 @@ public class Movie implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(id);
         parcel.writeString(originalTitle);
         parcel.writeString(posterImageUrlPart);
         parcel.writeString(plotSynopsis);

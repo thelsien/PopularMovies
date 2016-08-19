@@ -6,4 +6,7 @@
     <string name="iv_movie_poster_description">Movie poster image</string>
     <string name="intent_extra_movie">movie_object</string>
 
+    <string name="runtime_placeholder">%1$d min</string>
+    <string name="vote_average_placeholder">%1$s / 10</string>
+
 </resources>

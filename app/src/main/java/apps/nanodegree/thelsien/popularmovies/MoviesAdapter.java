@@ -12,6 +12,8 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import apps.nanodegree.thelsien.popularmovies.model.Movie;
+
 public class MoviesAdapter extends ArrayAdapter<Movie> {
 
     public static final String POSTER_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w342";

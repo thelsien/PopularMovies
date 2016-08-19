@@ -1,4 +1,4 @@
-package apps.nanodegree.thelsien.popularmovies;
+package apps.nanodegree.thelsien.popularmovies.background;
 
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -14,16 +14,15 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-public class MovieQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
+import apps.nanodegree.thelsien.popularmovies.Globals;
 
-    private static final String API_KEY = "YOURAPIKEY";
-    private static final String LOG_TAG = "MovieQueryAsyncTask";
+public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
 
-    private static final String BASE_URL = "http://api.themoviedb.org/3/";
+//    private static final String LOG_TAG = "MoviesListQueryAsyncTask";
 
-    private MovieQueryAsyncTaskListener mListener;
+    private MoviesListQueryAsyncTaskListener mListener;
 
-    public MovieQueryAsyncTask(MovieQueryAsyncTaskListener listener) {
+    public MoviesListQueryAsyncTask(MoviesListQueryAsyncTaskListener listener) {
         mListener = listener;
     }
 
@@ -33,11 +32,11 @@ public class MovieQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
         HttpURLConnection conn;
         Uri uri;
 
-        uri = Uri.parse(BASE_URL)
+        uri = Uri.parse(Globals.MOVIE_DB_BASE_URL)
                 .buildUpon()
                 .appendPath("movie")
                 .appendPath(filterType)
-                .appendQueryParameter("api_key", API_KEY)
+                .appendQueryParameter("api_key", Globals.MOVIE_DB_API_KEY)
                 .build();
 
         URL url;
@@ -85,7 +84,7 @@ public class MovieQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
         mListener.onResult(result);
     }
 
-    interface MovieQueryAsyncTaskListener {
+    public interface MoviesListQueryAsyncTaskListener {
         void onResult(JSONArray result);
     }
 }
