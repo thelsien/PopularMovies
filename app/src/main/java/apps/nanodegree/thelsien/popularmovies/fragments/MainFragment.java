@@ -2,8 +2,10 @@ package apps.nanodegree.thelsien.popularmovies.fragments;
 
 import android.app.Fragment;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -23,6 +25,7 @@ import java.util.ArrayList;
 import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
 import apps.nanodegree.thelsien.popularmovies.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.R;
+import apps.nanodegree.thelsien.popularmovies.SettingsActivity;
 import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 
@@ -81,8 +84,9 @@ public class MainFragment extends Fragment implements MoviesListQueryAsyncTask.M
         int id = item.getItemId();
 
         switch (id) {
-            case R.id.action_refresh:
-                updateMoviesList();
+            case R.id.action_settings:
+                Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                startActivity(intent);
 
                 return true;
         }
@@ -91,8 +95,10 @@ public class MainFragment extends Fragment implements MoviesListQueryAsyncTask.M
     }
 
     private void updateMoviesList() {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+
         MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(this);
-        moviesListQueryAsyncTask.execute("popular");
+        moviesListQueryAsyncTask.execute(prefs.getString(getString(R.string.pref_sort_by_key), getString(R.string.pref_sort_by_default)));
     }
 
     @Override

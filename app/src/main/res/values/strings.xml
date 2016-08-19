@@ -8,5 +8,20 @@
 
     <string name="runtime_placeholder">%1$d min</string>
     <string name="vote_average_placeholder">%1$s / 10</string>
+    <string name="action_settings">Settings</string>
+    <string name="pref_sort_by_key">sort_by_key</string>
+    <string name="pref_sort_by_title">Sort Movies By</string>
+    <string name="pref_sort_by_default">popular</string>
+    <string name="title_activity_settings">Settings</string>
+
+    <string-array name="pref_sort_by_entries">
+        <item>Popularity</item>
+        <item>Top Rated</item>
+    </string-array>
+
+    <string-array name="pref_sort_by_values">
+        <item>popular</item>
+        <item>top_rated</item>
+    </string-array>
 
 </resources>
