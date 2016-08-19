@@ -20,7 +20,8 @@ import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.background.MovieQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 
-public class MovieDetailFragment extends Fragment implements MovieQueryAsyncTask.MovieQueryAsyncTaskListener {
+public class MovieDetailFragment extends Fragment
+        implements MovieQueryAsyncTask.MovieQueryAsyncTaskListener {
 
     private Movie mMovie;
     private static final String LOG_TAG = "MovieDetailFragment";
@@ -38,7 +39,8 @@ public class MovieDetailFragment extends Fragment implements MovieQueryAsyncTask
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container);
 
         ImageView posterView = (ImageView) rootView.findViewById(R.id.iv_movie_poster);
@@ -47,7 +49,10 @@ public class MovieDetailFragment extends Fragment implements MovieQueryAsyncTask
         TextView voteView = (TextView) rootView.findViewById(R.id.tv_vote_avg);
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.tv_release_date);
 
-        Picasso.with(getActivity()).load(MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart).placeholder(R.drawable.default_movie_poster).into(posterView);
+        Picasso.with(getActivity())
+                .load(MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart)
+                .placeholder(R.drawable.default_movie_poster)
+                .into(posterView);
         titleView.setText(mMovie.originalTitle);
         plotView.setText(mMovie.plotSynopsis);
         voteView.setText(String.format(getString(R.string.vote_average_placeholder), String.valueOf(mMovie.voteAverage)));

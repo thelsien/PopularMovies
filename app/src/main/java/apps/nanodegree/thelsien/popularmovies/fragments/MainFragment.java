@@ -29,7 +29,8 @@ import apps.nanodegree.thelsien.popularmovies.SettingsActivity;
 import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 
-public class MainFragment extends Fragment implements MoviesListQueryAsyncTask.MoviesListQueryAsyncTaskListener {
+public class MainFragment extends Fragment
+        implements MoviesListQueryAsyncTask.MoviesListQueryAsyncTaskListener {
 
     private static final String LOG_TAG = "MainFragment";
     private ArrayAdapter<Movie> mAdapter;
@@ -49,7 +50,8 @@ public class MainFragment extends Fragment implements MoviesListQueryAsyncTask.M
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container);
 
         mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
@@ -106,7 +108,14 @@ public class MainFragment extends Fragment implements MoviesListQueryAsyncTask.M
         mAdapter.clear();
         for (int i = 0; i < result.length(); i++) {
             JSONObject movieJSON = result.optJSONObject(i);
-            Movie movie = new Movie(movieJSON.optInt("id"), movieJSON.optString("original_title"), movieJSON.optString("poster_path"), movieJSON.optString("overview"), movieJSON.optDouble("vote_average"), movieJSON.optString("release_date"));
+            Movie movie = new Movie(
+                    movieJSON.optInt("id"),
+                    movieJSON.optString("original_title"),
+                    movieJSON.optString("poster_path"),
+                    movieJSON.optString("overview"),
+                    movieJSON.optDouble("vote_average"),
+                    movieJSON.optString("release_date")
+            );
             mAdapter.add(movie);
         }
     }

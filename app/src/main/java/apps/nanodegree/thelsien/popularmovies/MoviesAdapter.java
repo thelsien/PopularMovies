@@ -34,12 +34,16 @@ public class MoviesAdapter extends ArrayAdapter<Movie> {
         Movie movieObject = getItem(position);
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.grid_list_row_item, parent, false);
+            convertView = LayoutInflater.from(getContext())
+                    .inflate(R.layout.grid_list_row_item, parent, false);
         }
 
         ImageView moviePosterView = (ImageView) convertView.findViewById(R.id.iv_movie_poster);
         if (movieObject != null) {
-            Picasso.with(getContext()).load(POSTER_IMAGE_BASE_URL + movieObject.posterImageUrlPart).placeholder(R.drawable.default_movie_poster).into(moviePosterView);
+            Picasso.with(getContext())
+                    .load(POSTER_IMAGE_BASE_URL + movieObject.posterImageUrlPart)
+                    .placeholder(R.drawable.default_movie_poster)
+                    .into(moviePosterView);
         }
 
         return convertView;

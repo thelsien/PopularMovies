@@ -10,7 +10,8 @@ import android.preference.PreferenceManager;
  * Created by szucsadam on 19/08/16.
  */
 
-public class SettingsActivity extends PreferenceActivity implements Preference.OnPreferenceChangeListener {
+public class SettingsActivity extends PreferenceActivity
+        implements Preference.OnPreferenceChangeListener {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
