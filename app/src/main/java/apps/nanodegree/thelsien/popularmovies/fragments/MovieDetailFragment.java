@@ -2,6 +2,7 @@ package apps.nanodegree.thelsien.popularmovies.fragments;
 
 import android.app.Fragment;
 import android.content.Intent;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -15,6 +16,7 @@ import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
 
+import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.background.MovieQueryAsyncTask;
@@ -32,9 +34,18 @@ public class MovieDetailFragment extends Fragment
 
         Intent intent = getActivity().getIntent();
         mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
+    }
 
-        MovieQueryAsyncTask movieQueryAsyncTask = new MovieQueryAsyncTask(this);
-        movieQueryAsyncTask.execute(mMovie.id);
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
+
+        if (netInfo != null && netInfo.isConnected()) {
+            MovieQueryAsyncTask movieQueryAsyncTask = new MovieQueryAsyncTask(this);
+            movieQueryAsyncTask.execute(mMovie.id);
+        }
     }
 
     @Nullable
@@ -57,6 +68,13 @@ public class MovieDetailFragment extends Fragment
         plotView.setText(mMovie.plotSynopsis);
         voteView.setText(String.format(getString(R.string.vote_average_placeholder), String.valueOf(mMovie.voteAverage)));
         releaseDateView.setText(mMovie.releaseDate);
+
+        NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
+
+        if (netInfo == null || !netInfo.isConnected()) {
+            TextView runtimeView = (TextView) rootView.findViewById(R.id.tv_runtime);
+            runtimeView.setVisibility(View.GONE);
+        }
 
         return rootView;
     }
