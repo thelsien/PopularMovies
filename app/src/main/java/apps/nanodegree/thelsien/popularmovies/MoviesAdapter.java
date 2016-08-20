@@ -30,7 +30,7 @@ public class MoviesAdapter extends ArrayAdapter<Movie> {
 
     @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         Movie movieObject = getItem(position);
 
         if (convertView == null) {
