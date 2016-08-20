@@ -125,6 +125,7 @@ public class MainFragment extends Fragment
 
             MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(this);
             moviesListQueryAsyncTask.execute(prefs.getString(getString(R.string.pref_sort_by_key), getString(R.string.pref_sort_by_default)));
+
         } else {
             if (getView() != null) {
                 getView().findViewById(R.id.gv_movies).setVisibility(View.GONE);

@@ -7,18 +7,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 import apps.nanodegree.thelsien.popularmovies.Globals;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
 
-//    private static final String LOG_TAG = "MoviesListQueryAsyncTask";
+    private static final String LOG_TAG = "MoviesListQueryAsyncTask";
 
     private MoviesListQueryAsyncTaskListener mListener;
 
@@ -29,7 +28,6 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray>
     @Override
     protected JSONArray doInBackground(String... strings) {
         String filterType = strings[0];
-        HttpURLConnection conn;
         Uri uri;
 
         uri = Uri.parse(Globals.MOVIE_DB_BASE_URL)
@@ -43,28 +41,11 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray>
         try {
             url = new URL(uri.toString());
 
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.connect();
+            OkHttpClient client = new OkHttpClient();
+            Request request = new Request.Builder().url(url).build();
+            Response response = client.newCall(request).execute();
 
-            InputStream inputStream = conn.getInputStream();
-            StringBuilder buffer = new StringBuilder();
-            if (inputStream == null) {
-                return null;
-            }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-            String line;
-            while ((line = reader.readLine()) != null) {
-                buffer.append(line).append("\n");
-            }
-
-            if (buffer.length() == 0) {
-                // Stream was empty.  No point in parsing.
-                return null;
-            }
-
-            String resultString = buffer.toString();
+            String resultString = response.body().string();
 
             JSONObject resultObject = new JSONObject(resultString);
 
