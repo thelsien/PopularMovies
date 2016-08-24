@@ -1,4 +1,4 @@
-package apps.nanodegree.thelsien.popularmovies;
+package apps.nanodegree.thelsien.popularmovies.adapters;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
@@ -12,6 +12,7 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 
 public class MoviesAdapter extends ArrayAdapter<Movie> {

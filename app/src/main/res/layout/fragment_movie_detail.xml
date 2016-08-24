@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<android.support.v4.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="match_parent">
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+                  android:layout_width="match_parent"
+                  android:layout_height="wrap_content"
+                  android:orientation="vertical">
 
         <TextView
             android:id="@+id/tv_movie_title"
@@ -16,7 +16,7 @@
             android:elevation="@dimen/elevation_4dp"
             android:padding="@dimen/padding_16dp"
             android:textColor="@android:color/white"
-            android:textSize="@dimen/text_28sp" />
+            android:textSize="@dimen/text_28sp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -31,7 +31,7 @@
                 android:layout_weight="1"
                 android:adjustViewBounds="true"
                 android:contentDescription="@string/iv_movie_poster_description"
-                android:padding="@dimen/padding_8dp" />
+                android:padding="@dimen/padding_8dp"/>
 
             <LinearLayout
                 android:layout_width="0dp"
@@ -44,20 +44,20 @@
                     android:id="@+id/tv_release_date"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/text_20sp" />
+                    android:textSize="@dimen/text_20sp"/>
 
                 <TextView
                     android:id="@+id/tv_runtime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:textSize="@dimen/text_16sp"
-                    android:textStyle="italic" />
+                    android:textStyle="italic"/>
 
                 <TextView
                     android:id="@+id/tv_vote_avg"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="@dimen/text_12sp" />
+                    android:textSize="@dimen/text_12sp"/>
 
             </LinearLayout>
 
@@ -70,7 +70,18 @@
             android:paddingEnd="@dimen/padding_16dp"
             android:paddingLeft="@dimen/padding_16dp"
             android:paddingRight="@dimen/padding_16dp"
-            android:paddingStart="@dimen/padding_16dp" />
+            android:paddingStart="@dimen/padding_16dp"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv_videos"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"/>
+
+        <LinearLayout
+            android:id="@+id/container_reviews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
 
     </LinearLayout>
-</ScrollView>
+</android.support.v4.widget.NestedScrollView>

@@ -26,7 +26,7 @@ import java.util.ArrayList;
 
 import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
-import apps.nanodegree.thelsien.popularmovies.MoviesAdapter;
+import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.SettingsActivity;
 import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;

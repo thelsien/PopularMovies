@@ -28,9 +28,7 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray>
     @Override
     protected JSONArray doInBackground(String... strings) {
         String filterType = strings[0];
-        Uri uri;
-
-        uri = Uri.parse(Globals.MOVIE_DB_BASE_URL)
+        Uri uri = Uri.parse(Globals.MOVIE_DB_BASE_URL)
                 .buildUpon()
                 .appendPath("movie")
                 .appendPath(filterType)

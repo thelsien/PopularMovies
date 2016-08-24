@@ -7,7 +7,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 
 import apps.nanodegree.thelsien.popularmovies.Globals;
@@ -25,29 +24,71 @@ public class MovieQueryAsyncTask extends AsyncTask<Integer, Void, JSONObject> {
     @Override
     protected JSONObject doInBackground(Integer... integers) {
         int movieId = integers[0];
-        HttpURLConnection conn;
-        Uri uri;
-
-        uri = Uri.parse(Globals.MOVIE_DB_BASE_URL)
+        Uri uriMovie = Uri.parse(Globals.MOVIE_DB_BASE_URL)
                 .buildUpon()
                 .appendPath("movie")
                 .appendPath(String.valueOf(movieId))
                 .appendQueryParameter("api_key", Globals.MOVIE_DB_API_KEY)
                 .build();
 
-        URL url;
+        Uri uriMovieVideos = Uri.parse(Globals.MOVIE_DB_BASE_URL)
+                .buildUpon()
+                .appendPath("movie")
+                .appendPath(String.valueOf(movieId))
+                .appendPath("videos")
+                .appendQueryParameter("api_key", Globals.MOVIE_DB_API_KEY)
+                .build();
+
+        Uri uriMovieReviews = Uri.parse(Globals.MOVIE_DB_BASE_URL)
+                .buildUpon()
+                .appendPath("movie")
+                .appendPath(String.valueOf(movieId))
+                .appendPath("reviews")
+                .appendQueryParameter("api_key", Globals.MOVIE_DB_API_KEY)
+                .build();
+
         try {
-            url = new URL(uri.toString());
+            URL url = new URL(uriMovie.toString());
 
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().url(url).build();
             Response response = client.newCall(request).execute();
 
-            String resultString = response.body().string();
+            String resultStringForMovie = response.body().string();
 
-            return new JSONObject(resultString);
+            url = new URL(uriMovieVideos.toString());
+            request = new Request.Builder().url(url).build();
+            response = client.newCall(request).execute();
 
-        } catch (IOException | JSONException e) {
+            String resultStringForMovieVideos = response.body().string();
+
+            url = new URL(uriMovieReviews.toString());
+            request = new Request.Builder().url(url).build();
+            response = client.newCall(request).execute();
+
+            String resultStringForMovieReviews = response.body().string();
+
+
+            return getMovieDataJSON(resultStringForMovie, resultStringForMovieVideos, resultStringForMovieReviews);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    private JSONObject getMovieDataJSON(String resultStringForMovie, String resultStringForMovieVideos, String resultStringForMovieReviews) {
+        try {
+            JSONObject movieData = new JSONObject(resultStringForMovie);
+            JSONObject movieVideos = new JSONObject(resultStringForMovieVideos);
+            JSONObject movieReviews = new JSONObject(resultStringForMovieReviews);
+
+            movieData.put("videos", movieVideos.getJSONArray("results"));
+            movieData.put("reviews", movieReviews.getJSONArray("results"));
+
+            return movieData;
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
