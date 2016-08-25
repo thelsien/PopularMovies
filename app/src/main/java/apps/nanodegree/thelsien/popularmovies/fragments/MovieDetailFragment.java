@@ -1,8 +1,10 @@
 package apps.nanodegree.thelsien.popularmovies.fragments;
 
 import android.app.Fragment;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
@@ -11,9 +13,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -26,6 +30,7 @@ import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.adapters.VideosAdapter;
 import apps.nanodegree.thelsien.popularmovies.background.MovieQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
+import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
 
 public class MovieDetailFragment extends Fragment
         implements MovieQueryAsyncTask.MovieQueryAsyncTaskListener {
@@ -87,6 +92,27 @@ public class MovieDetailFragment extends Fragment
             TextView runtimeView = (TextView) rootView.findViewById(R.id.tv_runtime);
             runtimeView.setVisibility(View.GONE);
         }
+
+        Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
+        addToFavorites.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                ContentValues cv = new ContentValues();
+                cv.put(MovieContract.MovieEntry._ID, mMovie.id);
+                cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
+                cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart);
+                cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
+                cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
+                cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
+                cv.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, mMovie.voteAverage);
+
+                Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+
+                Log.d(LOG_TAG, "inserted uri: " + insertedUri);
+
+                Toast.makeText(getActivity(), "Added to favorites", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         return rootView;
     }
