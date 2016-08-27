@@ -2,6 +2,7 @@ package apps.nanodegree.thelsien.popularmovies.background;
 
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -17,7 +18,7 @@ import okhttp3.Response;
 
 public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
 
-    private static final String LOG_TAG = "MoviesListQueryAsyncTask";
+    private static final String LOG_TAG = "MoviesListQueryATask";
 
     private MoviesListQueryAsyncTaskListener mListener;
 
@@ -38,6 +39,8 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray>
         URL url;
         try {
             url = new URL(uri.toString());
+
+            Log.d(LOG_TAG, url.toString());
 
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder().url(url).build();

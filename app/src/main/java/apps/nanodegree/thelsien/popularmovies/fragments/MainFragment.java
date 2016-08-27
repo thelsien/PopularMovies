@@ -1,13 +1,16 @@
 package apps.nanodegree.thelsien.popularmovies.fragments;
 
-import android.app.Fragment;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.database.Cursor;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.widget.CursorAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -17,7 +20,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.LinearLayout;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,17 +29,27 @@ import java.util.ArrayList;
 
 import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
-import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.SettingsActivity;
+import apps.nanodegree.thelsien.popularmovies.adapters.FavoriteMoviesCursorAdapter;
+import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
+import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
+
+import static android.view.View.GONE;
+import static android.view.View.VISIBLE;
 
 public class MainFragment extends Fragment
         implements MoviesListQueryAsyncTask.MoviesListQueryAsyncTaskListener {
 
     private static final String LOG_TAG = "MainFragment";
     private MoviesAdapter mAdapter;
+    private boolean mIsFavoritesVisible = false;
+    private GridView mGridView;
+    private LinearLayout mNoInternetContainer;
+    private String mSortByPreference;
+    private int mPosition = GridView.INVALID_POSITION;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,43 +64,50 @@ public class MainFragment extends Fragment
         updateMoviesList();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(LOG_TAG, "saving mIsFavoritesVisible: " + mIsFavoritesVisible);
+
+        outState.putBoolean(getString(R.string.is_favorites_visible_key), mIsFavoritesVisible);
+
+        if (mPosition != GridView.INVALID_POSITION) {
+            outState.putInt(getString(R.string.list_position_key), mPosition);
+        }
+
+        super.onSaveInstanceState(outState);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            mIsFavoritesVisible = savedInstanceState.getBoolean(getString(R.string.is_favorites_visible_key));
+            Log.d(LOG_TAG, "mIsFavoritesVisible loaded back: " + mIsFavoritesVisible);
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_main, container);
+
+        mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
+        mGridView = (GridView) rootView.findViewById(R.id.gv_movies);
+        mNoInternetContainer = (LinearLayout) rootView.findViewById(R.id.container_no_internet);
+
+        if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+            mGridView.setNumColumns(2);
+        } else if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
+            mGridView.setNumColumns(4);
+        }
 
         Button refreshButton = (Button) rootView.findViewById(R.id.btn_refresh);
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                updateMoviesList();
+                mGridView.setAdapter(null);
+                showMoviesFromInternet();
             }
         });
 
-        mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
-        GridView gridView = (GridView) rootView.findViewById(R.id.gv_movies);
-        if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
-            gridView.setNumColumns(2);
-        } else if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
-            gridView.setNumColumns(4);
-        }
-        gridView.setAdapter(mAdapter);
-        gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-                intent.putExtra(getString(R.string.intent_extra_movie), mAdapter.getItem(position));
-
-                startActivity(intent);
-            }
-        });
-
-        NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
-        if (netInfo == null || !netInfo.isConnected()) {
-            gridView.setVisibility(View.GONE);
-            rootView.findViewById(R.id.container_no_internet).setVisibility(View.VISIBLE);
-        }
+        updateMoviesList();
 
         return rootView;
     }
@@ -95,6 +115,9 @@ public class MainFragment extends Fragment
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.main, menu);
+        if (mIsFavoritesVisible) {
+            menu.findItem(R.id.action_favorites).setIcon(R.drawable.ic_favorite_white_48dp);
+        }
     }
 
     @Override
@@ -107,33 +130,86 @@ public class MainFragment extends Fragment
                 startActivity(intent);
 
                 return true;
+            case R.id.action_favorites:
+                if (!mIsFavoritesVisible) {
+                    item.setIcon(R.drawable.ic_favorite_white_48dp);
+                    mIsFavoritesVisible = true;
+
+                    showFavoriteMovies();
+                } else {
+                    item.setIcon(R.drawable.ic_favorite_border_white_48dp);
+                    mIsFavoritesVisible = false;
+
+                    showMoviesFromInternet();
+                }
         }
 
         return super.onOptionsItemSelected(item);
     }
 
     private void updateMoviesList() {
+        if (!mIsFavoritesVisible) {
+            showMoviesFromInternet();
+        } else {
+            showFavoriteMovies();
+        }
+    }
+
+    private void showFavoriteMovies() {
+        Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
+        final FavoriteMoviesCursorAdapter adapter = new FavoriteMoviesCursorAdapter(getActivity(), c, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+
+        if (mNoInternetContainer.getVisibility() == VISIBLE) {
+            mNoInternetContainer.setVisibility(GONE);
+            mGridView.setVisibility(VISIBLE);
+        }
+
+        mGridView.setAdapter(adapter);
+        mGridView.setOnItemClickListener(null);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                mPosition = position;
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(adapter.getItem(position)));
+
+                startActivity(intent);
+            }
+        });
+
+        mGridView.smoothScrollToPosition(mPosition);
+    }
+
+    private void showMoviesFromInternet() {
         NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
 
         if (netInfo != null && netInfo.isConnected()) {
-            if (getView() != null) {
-                getView().findViewById(R.id.gv_movies).setVisibility(View.VISIBLE);
-                getView().findViewById(R.id.container_no_internet).setVisibility(View.GONE);
-            }
+            Log.d(LOG_TAG, "networkInfo - we have connection");
+            changeVisibilityOfGridViewAndNoInternetContainer(VISIBLE, GONE);
 
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-
-            MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(this);
-            moviesListQueryAsyncTask.execute(prefs.getString(getString(R.string.pref_sort_by_key), getString(R.string.pref_sort_by_default)));
-
-        } else {
-            if (getView() != null) {
-                getView().findViewById(R.id.gv_movies).setVisibility(View.GONE);
-                getView().findViewById(R.id.container_no_internet).setVisibility(View.VISIBLE);
+            String sortBy = prefs.getString(getString(R.string.pref_sort_by_preference_key), getString(R.string.pref_sort_by_preference_default));
+            if (mSortByPreference == null || !mSortByPreference.equals(sortBy)) {
+                mSortByPreference = sortBy;
+                MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(this);
+                moviesListQueryAsyncTask.execute(mSortByPreference);
             }
 
-            Toast.makeText(getActivity(), getString(R.string.toast_error_no_internet), Toast.LENGTH_SHORT).show();
+        } else {
+            Log.d(LOG_TAG, "networkInfo - no connection");
+            if (mAdapter.isEmpty()) {
+                Log.d(LOG_TAG, "networkInfo - empty adapter");
+                changeVisibilityOfGridViewAndNoInternetContainer(GONE, VISIBLE);
+            } else {
+                Log.d(LOG_TAG, "networkInfo - adapter is not empty");
+                setAdapterForInternet();
+            }
         }
+    }
+
+    private void changeVisibilityOfGridViewAndNoInternetContainer(int gridViewVisibility, int noInternetContainerVisibility) {
+        mGridView.setVisibility(gridViewVisibility);
+        mNoInternetContainer.setVisibility(noInternetContainerVisibility);
     }
 
     @Override
@@ -151,5 +227,24 @@ public class MainFragment extends Fragment
             );
             mAdapter.add(movie);
         }
+
+        setAdapterForInternet();
+    }
+
+    private void setAdapterForInternet() {
+        mGridView.setAdapter(mAdapter);
+        mGridView.setOnItemClickListener(null);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                mPosition = position;
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie), mAdapter.getItem(position));
+
+                startActivity(intent);
+            }
+        });
+
+        mGridView.smoothScrollToPosition(mPosition);
     }
 }

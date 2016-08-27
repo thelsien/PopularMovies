@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 public class MovieProvider extends ContentProvider {
 
     private static final int MOVIE = 100;
+    private static final int MOVIE_WITH_ID = 200;
 
     private static final UriMatcher mUriMatcher = buildUriMatcher();
 
@@ -25,6 +26,12 @@ public class MovieProvider extends ContentProvider {
                 MovieContract.CONTENT_AUTHORITY,
                 MovieContract.PATH_MOVIE,
                 MOVIE
+        );
+
+        matcher.addURI(
+                MovieContract.CONTENT_AUTHORITY,
+                MovieContract.PATH_MOVIE + "/#",
+                MOVIE_WITH_ID
         );
 
         return matcher;
@@ -54,6 +61,19 @@ public class MovieProvider extends ContentProvider {
                 );
                 break;
             }
+            case MOVIE_WITH_ID: {
+                long id = ContentUris.parseId(uri);
+                retCursor = mMovieDbHelper.getReadableDatabase().query(
+                        MovieContract.MovieEntry.TABLE_NAME,
+                        projection,
+                        MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry._ID + " = ?",
+                        new String[]{String.valueOf(id)},
+                        null,
+                        null,
+                        null
+                );
+                break;
+            }
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -68,6 +88,8 @@ public class MovieProvider extends ContentProvider {
         switch (match) {
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
+            case MOVIE_WITH_ID:
+                return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }

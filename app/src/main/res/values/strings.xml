@@ -9,15 +9,19 @@
     <string name="runtime_placeholder">%1$d min</string>
     <string name="vote_average_placeholder">%1$s / 10</string>
     <string name="action_settings">Settings</string>
-    <string name="pref_sort_by_key">sort_by_key</string>
+    <string name="pref_sort_by_preference_key">sort_by_key</string>
     <string name="pref_sort_by_title">Sort Movies By</string>
-    <string name="pref_sort_by_default">popular</string>
+    <string name="pref_sort_by_preference_default">popular</string>
     <string name="title_activity_settings">Settings</string>
     <string name="toast_error_no_internet">No network available.</string>
     <string name="tv_no_internet_description">No internet available, please try again.</string>
     <string name="add_to_favorites">Add to favourites</string>
 
     <string name="content_authority">apps.nanodegree.thelsien.popularmovies</string>
+    <string name="action_favorites">Favorites</string>
+    <string name="intent_extra_movie_uri">movie_uri</string>
+    <string name="is_favorites_visible_key">is_favorites_visible</string>
+    <string name="list_position_key">list_position_key</string>
 
     <string-array name="pref_sort_by_entries">
         <item>Popularity</item>

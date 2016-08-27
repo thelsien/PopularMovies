@@ -3,6 +3,7 @@ package apps.nanodegree.thelsien.popularmovies.fragments;
 import android.app.Fragment;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -44,7 +45,33 @@ public class MovieDetailFragment extends Fragment
         super.onCreate(savedInstanceState);
 
         Intent intent = getActivity().getIntent();
-        mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
+        if (intent.hasExtra(getString(R.string.intent_extra_movie))) {
+            mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
+            mMovie.posterImageUrlPart = MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart;
+        } else {
+            Uri uri = intent.getParcelableExtra(getString(R.string.intent_extra_movie_uri));
+            Cursor c = null;
+            try {
+                c = getActivity().getContentResolver().query(uri, null, null, null, null);
+                if (c != null) {
+                    c.moveToFirst();
+                    mMovie = new Movie(
+                            c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)),
+                            c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)),
+                            c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL)),
+                            c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_SYNOPSIS)),
+                            c.getDouble(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_AVG)),
+                            c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE))
+                    );
+                }
+            } catch (NullPointerException e) {
+                Log.d(LOG_TAG, "Failed to query uri: " + uri);
+            } finally {
+                if (c != null && !c.isClosed()) {
+                    c.close();
+                }
+            }
+        }
     }
 
     @Override
@@ -78,7 +105,7 @@ public class MovieDetailFragment extends Fragment
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.tv_release_date);
 
         Picasso.with(getActivity())
-                .load(MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart)
+                .load(mMovie.posterImageUrlPart)
                 .placeholder(R.drawable.default_movie_poster)
                 .into(posterView);
         titleView.setText(mMovie.originalTitle);
@@ -134,8 +161,8 @@ public class MovieDetailFragment extends Fragment
         for (int i = 0; i < reviews.length(); i++) {
             JSONObject review = reviews.optJSONObject(i);
             View reviewRowView = LayoutInflater.from(getActivity()).inflate(R.layout.list_review_row_item, reviewsContainer, false);
-            ((TextView)reviewRowView.findViewById(R.id.tv_review_author)).setText(review.optString("author"));
-            ((TextView)reviewRowView.findViewById(R.id.tv_review_text)).setText(review.optString("content"));
+            ((TextView) reviewRowView.findViewById(R.id.tv_review_author)).setText(review.optString("author"));
+            ((TextView) reviewRowView.findViewById(R.id.tv_review_text)).setText(review.optString("content"));
 
             reviewsContainer.addView(reviewRowView);
         }

@@ -16,7 +16,7 @@ public class SettingsFragment extends PreferenceFragment
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.pref_general);
 
-        Preference pref = findPreference(getString(R.string.pref_sort_by_key));
+        Preference pref = findPreference(getString(R.string.pref_sort_by_preference_key));
         pref.setOnPreferenceChangeListener(this);
         onPreferenceChange(pref,
                 PreferenceManager
