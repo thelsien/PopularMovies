@@ -13,9 +13,13 @@ import android.support.annotation.Nullable;
 public class MovieProvider extends ContentProvider {
 
     private static final int MOVIE = 100;
+    private static final int FAVORITE = 111;
     private static final int VIDEO = 125;
     private static final int REVIEW = 150;
+
     private static final int MOVIE_WITH_ID = 200;
+    private static final int FAVORITE_WITH_ID = 250;
+
     private static final int VIDEOS_FOR_MOVIE = 300;
     private static final int REVIEWS_FOR_MOVIE = 400;
 
@@ -34,6 +38,12 @@ public class MovieProvider extends ContentProvider {
 
         matcher.addURI(
                 MovieContract.CONTENT_AUTHORITY,
+                MovieContract.PATH_FAVORITES,
+                FAVORITE
+        );
+
+        matcher.addURI(
+                MovieContract.CONTENT_AUTHORITY,
                 MovieContract.PATH_MOVIE + "/" + MovieContract.PATH_VIDEOS,
                 VIDEO
         );
@@ -48,6 +58,12 @@ public class MovieProvider extends ContentProvider {
                 MovieContract.CONTENT_AUTHORITY,
                 MovieContract.PATH_MOVIE + "/#",
                 MOVIE_WITH_ID
+        );
+
+        matcher.addURI(
+                MovieContract.CONTENT_AUTHORITY,
+                MovieContract.PATH_FAVORITES + "/#",
+                FAVORITE_WITH_ID
         );
 
         matcher.addURI(
@@ -89,6 +105,18 @@ public class MovieProvider extends ContentProvider {
                 );
                 break;
             }
+            case FAVORITE: {
+                retCursor = mMovieDbHelper.getReadableDatabase().query(
+                        MovieContract.FavoriteEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder
+                );
+                break;
+            }
             case VIDEO: {
                 retCursor = mMovieDbHelper.getReadableDatabase().query(
                         MovieContract.VideoEntry.TABLE_NAME,
@@ -119,6 +147,19 @@ public class MovieProvider extends ContentProvider {
                         MovieContract.MovieEntry.TABLE_NAME,
                         projection,
                         MovieContract.MovieEntry.TABLE_NAME + "." + MovieContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
+                        new String[]{String.valueOf(id)},
+                        null,
+                        null,
+                        null
+                );
+                break;
+            }
+            case FAVORITE_WITH_ID: {
+                long id = ContentUris.parseId(uri);
+                retCursor = mMovieDbHelper.getReadableDatabase().query(
+                        MovieContract.FavoriteEntry.TABLE_NAME,
+                        projection,
+                        MovieContract.FavoriteEntry.COLUMN_MOVIE_ID + " = ?",
                         new String[]{String.valueOf(id)},
                         null,
                         null,
@@ -167,8 +208,14 @@ public class MovieProvider extends ContentProvider {
             case MOVIE:
                 return MovieContract.MovieEntry.CONTENT_TYPE;
 
+            case FAVORITE:
+                return MovieContract.FavoriteEntry.CONTENT_TYPE;
+
             case MOVIE_WITH_ID:
                 return MovieContract.MovieEntry.CONTENT_ITEM_TYPE;
+
+            case FAVORITE_WITH_ID:
+                return MovieContract.FavoriteEntry.CONTENT_ITEM_TYPE;
 
             case VIDEO:
             case VIDEOS_FOR_MOVIE:
@@ -196,6 +243,15 @@ public class MovieProvider extends ContentProvider {
                 long _id = db.insert(MovieContract.MovieEntry.TABLE_NAME, null, contentValues);
                 if (_id > 0) {
                     returnUri = ContentUris.withAppendedId(MovieContract.MovieEntry.CONTENT_URI, _id);
+                } else {
+                    throw new SQLException("Failed to insert row into " + uri);
+                }
+                break;
+            }
+            case FAVORITE: {
+                long _id = db.insert(MovieContract.FavoriteEntry.TABLE_NAME, null, contentValues);
+                if (_id > 0) {
+                    returnUri = ContentUris.withAppendedId(MovieContract.FavoriteEntry.CONTENT_URI, _id);
                 } else {
                     throw new SQLException("Failed to insert row into " + uri);
                 }
@@ -239,6 +295,9 @@ public class MovieProvider extends ContentProvider {
             case MOVIE:
                 rowsDeleted = db.delete(MovieContract.MovieEntry.TABLE_NAME, selection, selectionArgs);
                 break;
+            case FAVORITE:
+                rowsDeleted = db.delete(MovieContract.FavoriteEntry.TABLE_NAME, selection, selectionArgs);
+                break;
             case VIDEO:
                 rowsDeleted = db.delete(MovieContract.VideoEntry.TABLE_NAME, selection, selectionArgs);
                 break;
@@ -265,6 +324,10 @@ public class MovieProvider extends ContentProvider {
         switch (match) {
             case MOVIE:
                 rowsUpdated = db.update(MovieContract.MovieEntry.TABLE_NAME, values, selection,
+                        selectionArgs);
+                break;
+            case FAVORITE:
+                rowsUpdated = db.update(MovieContract.FavoriteEntry.TABLE_NAME, values, selection,
                         selectionArgs);
                 break;
             case VIDEO:

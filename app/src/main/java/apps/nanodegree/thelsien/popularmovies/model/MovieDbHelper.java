@@ -25,8 +25,19 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_VOTE_AVG + " REAL NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_DURATION + " INTEGER NOT NULL DEFAULT -1, " +
-                MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " TEXT NOT NULL DEFAULT 'false', " +
-                "UNIQUE(" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") ON CONFLICT IGNORE" +
+                "UNIQUE(" + MovieContract.MovieEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE" +
+                ");";
+
+        final String CREATE_FAVORITES_TABLE = "CREATE TABLE " + MovieContract.FavoriteEntry.TABLE_NAME + " (" +
+                MovieContract.FavoriteEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                MovieContract.FavoriteEntry.COLUMN_MOVIE_ID + " INTEGER NOT NULL, " +
+                MovieContract.FavoriteEntry.COLUMN_MOVIE_TITLE + " TEXT NOT NULL, " +
+                MovieContract.FavoriteEntry.COLUMN_IMAGE_URL + " TEXT NOT NULL, " +
+                MovieContract.FavoriteEntry.COLUMN_SYNOPSIS + " TEXT NOT NULL, " +
+                MovieContract.FavoriteEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +
+                MovieContract.FavoriteEntry.COLUMN_VOTE_AVG + " REAL NOT NULL, " +
+                MovieContract.FavoriteEntry.COLUMN_DURATION + " INTEGER NOT NULL DEFAULT -1, " +
+                "UNIQUE(" + MovieContract.FavoriteEntry.COLUMN_MOVIE_ID + ") ON CONFLICT REPLACE" +
                 ");";
 
         final String CREATE_VIDEOS_TABLE = "CREATE TABLE " + MovieContract.VideoEntry.TABLE_NAME + " (" +
@@ -49,6 +60,7 @@ public class MovieDbHelper extends SQLiteOpenHelper {
                 ");";
 
         sqLiteDatabase.execSQL(CREATE_MOVIES_TABLE);
+        sqLiteDatabase.execSQL(CREATE_FAVORITES_TABLE);
         sqLiteDatabase.execSQL(CREATE_VIDEOS_TABLE);
         sqLiteDatabase.execSQL(CREATE_REVIEWS_TABLE);
     }

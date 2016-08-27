@@ -77,40 +77,7 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, Void> {
                 ContentValues[] cvArray = new ContentValues[cvVector.size()];
                 cvVector.toArray(cvArray);
 
-                /*int deletedRows =*/
-                mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " = ?", new String[]{"false"});
-
-//                Log.d(LOG_TAG, "deleted rows: " + deletedRows);
-//
-//                Cursor c = null;
-//                try {
-//                    c = mContext.getContentResolver().query(
-//                            MovieContract.MovieEntry.CONTENT_URI,
-//                            null,
-//                            null,
-//                            null,
-//                            null
-//                    );
-//
-//                    if (c != null) {
-//                        c.moveToFirst();
-//                        while (!c.isAfterLast()) {
-//                            for (int i = 0; i < cvArray.length; i++) {
-//                                if (c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)) == cvArray[i].getAsInteger(MovieContract.MovieEntry._ID)) {
-//                                    cvVector.remove(cvArray[i]);
-//                                }
-//                            }
-//                            c.moveToNext();
-//                        }
-//                    }
-//                } finally {
-//                    if (c != null && !c.isClosed()) {
-//                        c.close();
-//                    }
-//                }
-//
-//                cvArray = new ContentValues[cvVector.size()];
-//                cvVector.toArray(cvArray);
+                mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, null, null);
                 mContext.getContentResolver().bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
             }
         } catch (IOException | JSONException e) {

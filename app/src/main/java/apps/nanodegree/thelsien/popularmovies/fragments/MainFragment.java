@@ -106,7 +106,6 @@ public class MainFragment extends Fragment
         refreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                mGridView.setAdapter(null);
                 showMoviesFromInternet();
             }
         });
@@ -161,7 +160,7 @@ public class MainFragment extends Fragment
 
     private void showFavoriteMovies() {
         mAdapter.swapCursor(null);
-        Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " = ?", new String[]{"true"}, null);
+        Cursor c = getActivity().getContentResolver().query(MovieContract.FavoriteEntry.CONTENT_URI, null, null, null, null);
 
         if (mNoInternetContainer.getVisibility() == VISIBLE) {
             mNoInternetContainer.setVisibility(GONE);
@@ -170,23 +169,25 @@ public class MainFragment extends Fragment
 
         mAdapter.swapCursor(c);
         mGridView.setAdapter(mAdapter);
-//        mGridView.setOnItemClickListener(null);
-//        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-//                mPosition = position;
-//                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-//                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(adapter.getItem(position)));
-//
-//                startActivity(intent);
-//            }
-//        });
+        mGridView.setOnItemClickListener(null);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                mPosition = position;
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.FavoriteEntry.getFavoriteUriWithId(mAdapter.getItem(position)));
+
+                startActivity(intent);
+            }
+        });
 
         mGridView.smoothScrollToPosition(mPosition);
     }
 
     private void showMoviesFromInternet() {
         NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
+
+        mAdapter.swapCursor(null);
 
         if (netInfo != null && netInfo.isConnected()) {
             Log.d(LOG_TAG, "networkInfo - we have connection");
@@ -204,13 +205,8 @@ public class MainFragment extends Fragment
 
         } else {
             Log.d(LOG_TAG, "networkInfo - no connection");
-            if (mAdapter.isEmpty()) {
-                Log.d(LOG_TAG, "networkInfo - empty adapter");
-                changeVisibilityOfGridViewAndNoInternetContainer(GONE, VISIBLE);
-            } else {
-                Log.d(LOG_TAG, "networkInfo - adapter is not empty");
-                setAdapterForInternet();
-            }
+            Log.d(LOG_TAG, "networkInfo - empty adapter");
+            changeVisibilityOfGridViewAndNoInternetContainer(GONE, VISIBLE);
         }
     }
 
@@ -235,28 +231,14 @@ public class MainFragment extends Fragment
 //            mAdapter.add(movie);
 //        }
 
-        mAdapter.swapCursor(null);
+        Cursor c = getActivity().getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
 
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        String sortBy = prefs.getString(getString(R.string.pref_sort_by_preference_key), getString(R.string.pref_sort_by_preference_default));
-        Cursor c;
-        if (sortBy.equals(getResources().getStringArray(R.array.pref_sort_by_values)[0])) {
-            c = getActivity().getContentResolver().query(
-                    MovieContract.MovieEntry.CONTENT_URI,
-                    null,
-                    null,
-                    null,
-                    null
-            );
-        } else {
-            c = getActivity().getContentResolver().query(
-                    MovieContract.MovieEntry.CONTENT_URI,
-                    null,
-                    null,
-                    null,
-                    MovieContract.MovieEntry.COLUMN_VOTE_AVG + " DESC"
-            );
-        }
 
         mAdapter.swapCursor(c);
 
@@ -266,5 +248,15 @@ public class MainFragment extends Fragment
     private void setAdapterForInternet() {
 //        mGridView.setAdapter(mAdapter);
         mGridView.smoothScrollToPosition(mPosition);
+        mGridView.setOnItemClickListener(null);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(mAdapter.getItem(position)));
+
+                startActivity(intent);
+            }
+        });
     }
 }
