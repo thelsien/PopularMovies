@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -22,19 +21,12 @@ import android.widget.Button;
 import android.widget.GridView;
 import android.widget.LinearLayout;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-
 import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.SettingsActivity;
 import apps.nanodegree.thelsien.popularmovies.adapters.FavoriteMoviesCursorAdapter;
-import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;
-import apps.nanodegree.thelsien.popularmovies.model.Movie;
 import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
 
 import static android.view.View.GONE;
@@ -44,7 +36,7 @@ public class MainFragment extends Fragment
         implements MoviesListQueryAsyncTask.MoviesListQueryAsyncTaskListener {
 
     private static final String LOG_TAG = "MainFragment";
-    private MoviesAdapter mAdapter;
+    private FavoriteMoviesCursorAdapter mAdapter;
     private boolean mIsFavoritesVisible = false;
     private GridView mGridView;
     private LinearLayout mNoInternetContainer;
@@ -88,7 +80,8 @@ public class MainFragment extends Fragment
 
         View rootView = inflater.inflate(R.layout.fragment_main, container);
 
-        mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
+//        mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
+        mAdapter = new FavoriteMoviesCursorAdapter(getActivity(), null, 0);
         mGridView = (GridView) rootView.findViewById(R.id.gv_movies);
         mNoInternetContainer = (LinearLayout) rootView.findViewById(R.id.container_no_internet);
 
@@ -97,6 +90,17 @@ public class MainFragment extends Fragment
         } else if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
             mGridView.setNumColumns(4);
         }
+        mGridView.setAdapter(mAdapter);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                mPosition = position;
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(mAdapter.getItem(position)));
+
+                startActivity(intent);
+            }
+        });
 
         Button refreshButton = (Button) rootView.findViewById(R.id.btn_refresh);
         refreshButton.setOnClickListener(new View.OnClickListener() {
@@ -156,26 +160,27 @@ public class MainFragment extends Fragment
     }
 
     private void showFavoriteMovies() {
-        Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, null, null, null);
-        final FavoriteMoviesCursorAdapter adapter = new FavoriteMoviesCursorAdapter(getActivity(), c, CursorAdapter.FLAG_REGISTER_CONTENT_OBSERVER);
+        mAdapter.swapCursor(null);
+        Cursor c = getActivity().getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " = ?", new String[]{"true"}, null);
 
         if (mNoInternetContainer.getVisibility() == VISIBLE) {
             mNoInternetContainer.setVisibility(GONE);
             mGridView.setVisibility(VISIBLE);
         }
 
-        mGridView.setAdapter(adapter);
-        mGridView.setOnItemClickListener(null);
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                mPosition = position;
-                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(adapter.getItem(position)));
-
-                startActivity(intent);
-            }
-        });
+        mAdapter.swapCursor(c);
+        mGridView.setAdapter(mAdapter);
+//        mGridView.setOnItemClickListener(null);
+//        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+//                mPosition = position;
+//                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+//                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(adapter.getItem(position)));
+//
+//                startActivity(intent);
+//            }
+//        });
 
         mGridView.smoothScrollToPosition(mPosition);
     }
@@ -191,8 +196,10 @@ public class MainFragment extends Fragment
             String sortBy = prefs.getString(getString(R.string.pref_sort_by_preference_key), getString(R.string.pref_sort_by_preference_default));
             if (mSortByPreference == null || !mSortByPreference.equals(sortBy)) {
                 mSortByPreference = sortBy;
-                MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(this);
+                MoviesListQueryAsyncTask moviesListQueryAsyncTask = new MoviesListQueryAsyncTask(getActivity(), this);
                 moviesListQueryAsyncTask.execute(mSortByPreference);
+            } else {
+                onMoviesListQueryFinished();
             }
 
         } else {
@@ -213,38 +220,51 @@ public class MainFragment extends Fragment
     }
 
     @Override
-    public void onResult(JSONArray result) {
-        mAdapter.clear();
-        for (int i = 0; i < result.length(); i++) {
-            JSONObject movieJSON = result.optJSONObject(i);
-            Movie movie = new Movie(
-                    movieJSON.optInt("id"),
-                    movieJSON.optString("original_title"),
-                    movieJSON.optString("poster_path"),
-                    movieJSON.optString("overview"),
-                    movieJSON.optDouble("vote_average"),
-                    movieJSON.optString("release_date")
+    public void onMoviesListQueryFinished() {
+//        mAdapter.clear();
+//        for (int i = 0; i < result.length(); i++) {
+//            JSONObject movieJSON = result.optJSONObject(i);
+//            Movie movie = new Movie(
+//                    movieJSON.optInt("id"),
+//                    movieJSON.optString("original_title"),
+//                    movieJSON.optString("poster_path"),
+//                    movieJSON.optString("overview"),
+//                    movieJSON.optDouble("vote_average"),
+//                    movieJSON.optString("release_date")
+//            );
+//            mAdapter.add(movie);
+//        }
+
+        mAdapter.swapCursor(null);
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        String sortBy = prefs.getString(getString(R.string.pref_sort_by_preference_key), getString(R.string.pref_sort_by_preference_default));
+        Cursor c;
+        if (sortBy.equals(getResources().getStringArray(R.array.pref_sort_by_values)[0])) {
+            c = getActivity().getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    null
             );
-            mAdapter.add(movie);
+        } else {
+            c = getActivity().getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    MovieContract.MovieEntry.COLUMN_VOTE_AVG + " DESC"
+            );
         }
+
+        mAdapter.swapCursor(c);
 
         setAdapterForInternet();
     }
 
     private void setAdapterForInternet() {
-        mGridView.setAdapter(mAdapter);
-        mGridView.setOnItemClickListener(null);
-        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                mPosition = position;
-                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-                intent.putExtra(getString(R.string.intent_extra_movie), mAdapter.getItem(position));
-
-                startActivity(intent);
-            }
-        });
-
+//        mGridView.setAdapter(mAdapter);
         mGridView.smoothScrollToPosition(mPosition);
     }
 }

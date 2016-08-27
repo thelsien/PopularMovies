@@ -1,5 +1,7 @@
 package apps.nanodegree.thelsien.popularmovies.background;
 
+import android.content.ContentValues;
+import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -10,24 +12,29 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Vector;
 
 import apps.nanodegree.thelsien.popularmovies.Globals;
+import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
+import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray> {
+public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, Void> {
 
     private static final String LOG_TAG = "MoviesListQueryATask";
 
     private MoviesListQueryAsyncTaskListener mListener;
+    private Context mContext;
 
-    public MoviesListQueryAsyncTask(MoviesListQueryAsyncTaskListener listener) {
+    public MoviesListQueryAsyncTask(Context context, MoviesListQueryAsyncTaskListener listener) {
         mListener = listener;
+        mContext = context;
     }
 
     @Override
-    protected JSONArray doInBackground(String... strings) {
+    protected Void doInBackground(String... strings) {
         String filterType = strings[0];
         Uri uri = Uri.parse(Globals.MOVIE_DB_BASE_URL)
                 .buildUpon()
@@ -50,8 +57,62 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray>
 
             JSONObject resultObject = new JSONObject(resultString);
 
-            return new JSONArray(resultObject.optString("results"));
+            JSONArray resultArray = new JSONArray(resultObject.optString("results"));
 
+            Vector<ContentValues> cvVector = new Vector<>();
+            for (int i = 0; i < resultArray.length(); i++) {
+                JSONObject movieObject = resultArray.optJSONObject(i);
+                ContentValues v = new ContentValues();
+                v.put(MovieContract.MovieEntry.COLUMN_MOVIE_ID, movieObject.optInt("id"));
+                v.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, movieObject.optString("original_title"));
+                v.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, movieObject.optString("release_date"));
+                v.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, movieObject.optString("overview"));
+                v.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, movieObject.optDouble("vote_average"));
+                v.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, MoviesAdapter.POSTER_IMAGE_BASE_URL + "/" + movieObject.optString("poster_path"));
+
+                cvVector.add(v);
+            }
+
+            if (cvVector.size() > 0) {
+                ContentValues[] cvArray = new ContentValues[cvVector.size()];
+                cvVector.toArray(cvArray);
+
+                /*int deletedRows =*/
+                mContext.getContentResolver().delete(MovieContract.MovieEntry.CONTENT_URI, MovieContract.MovieEntry.COLUMN_IS_FAVORITE + " = ?", new String[]{"false"});
+
+//                Log.d(LOG_TAG, "deleted rows: " + deletedRows);
+//
+//                Cursor c = null;
+//                try {
+//                    c = mContext.getContentResolver().query(
+//                            MovieContract.MovieEntry.CONTENT_URI,
+//                            null,
+//                            null,
+//                            null,
+//                            null
+//                    );
+//
+//                    if (c != null) {
+//                        c.moveToFirst();
+//                        while (!c.isAfterLast()) {
+//                            for (int i = 0; i < cvArray.length; i++) {
+//                                if (c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)) == cvArray[i].getAsInteger(MovieContract.MovieEntry._ID)) {
+//                                    cvVector.remove(cvArray[i]);
+//                                }
+//                            }
+//                            c.moveToNext();
+//                        }
+//                    }
+//                } finally {
+//                    if (c != null && !c.isClosed()) {
+//                        c.close();
+//                    }
+//                }
+//
+//                cvArray = new ContentValues[cvVector.size()];
+//                cvVector.toArray(cvArray);
+                mContext.getContentResolver().bulkInsert(MovieContract.MovieEntry.CONTENT_URI, cvArray);
+            }
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
@@ -60,13 +121,13 @@ public class MoviesListQueryAsyncTask extends AsyncTask<String, Void, JSONArray>
     }
 
     @Override
-    protected void onPostExecute(JSONArray result) {
+    protected void onPostExecute(Void result) {
         super.onPostExecute(result);
 
-        mListener.onResult(result);
+        mListener.onMoviesListQueryFinished();
     }
 
     public interface MoviesListQueryAsyncTaskListener {
-        void onResult(JSONArray result);
+        void onMoviesListQueryFinished();
     }
 }

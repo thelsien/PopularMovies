@@ -55,6 +55,6 @@ public class FavoriteMoviesCursorAdapter extends CursorAdapter {
     public Long getItem(int position) {
         Cursor c = (Cursor) super.getItem(position);
 
-        return c.getLong(c.getColumnIndex(MovieContract.MovieEntry._ID));
+        return c.getLong(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID));
     }
 }

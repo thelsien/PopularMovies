@@ -56,12 +56,13 @@ public class MovieDetailFragment extends Fragment
                 if (c != null) {
                     c.moveToFirst();
                     mMovie = new Movie(
-                            c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)),
+                            c.getInt(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_ID)),
                             c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)),
                             c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL)),
                             c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_SYNOPSIS)),
                             c.getDouble(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_AVG)),
-                            c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE))
+                            c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE)),
+                            Boolean.valueOf(c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_IS_FAVORITE)))
                     );
                 }
             } catch (NullPointerException e) {
@@ -120,24 +121,41 @@ public class MovieDetailFragment extends Fragment
             runtimeView.setVisibility(View.GONE);
         }
 
-        Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
+        final Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
+        if (mMovie.isFavorite) {
+            addToFavorites.setText(R.string.btn_remove_from_favorites);
+        }
+        addToFavorites.setTag(mMovie.isFavorite);
         addToFavorites.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                boolean isFavorite = (Boolean) addToFavorites.getTag();
                 ContentValues cv = new ContentValues();
-                cv.put(MovieContract.MovieEntry._ID, mMovie.id);
-                cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
-                cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart);
-                cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
-                cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
-                cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
-                cv.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, mMovie.voteAverage);
+                cv.put(MovieContract.MovieEntry.COLUMN_IS_FAVORITE, String.valueOf(!isFavorite));
 
-                Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+                int updatedRows = getActivity().getContentResolver()
+                        .update(
+                                MovieContract.MovieEntry.CONTENT_URI,
+                                cv,
+                                MovieContract.MovieEntry.COLUMN_MOVIE_ID + " = ?",
+                                new String[]{String.valueOf(mMovie.id)}
+                        );
 
-                Log.d(LOG_TAG, "inserted uri: " + insertedUri);
-
-                Toast.makeText(getActivity(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                Log.d(LOG_TAG, "updated: " + updatedRows);
+                if (updatedRows == 1) {
+                    if (isFavorite) {
+                        Toast.makeText(getActivity(), R.string.removed_from_favorites, Toast.LENGTH_SHORT).show();
+                        addToFavorites.setText(R.string.btn_add_to_favorites);
+                        mMovie.isFavorite = false;
+                    } else {
+                        Toast.makeText(getActivity(), R.string.added_to_favorites, Toast.LENGTH_SHORT).show();
+                        addToFavorites.setText(R.string.btn_remove_from_favorites);
+                        mMovie.isFavorite = true;
+                    }
+                    addToFavorites.setTag(mMovie.isFavorite);
+                } else {
+                    Toast.makeText(getActivity(), R.string.error_during_adding_to_favorites, Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
