@@ -24,6 +24,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+import apps.nanodegree.thelsien.popularmovies.FavoritesActivity;
 import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
 import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
@@ -100,10 +101,16 @@ public class MainFragment extends Fragment
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+        Intent intent;
 
         switch (id) {
             case R.id.action_settings:
-                Intent intent = new Intent(getActivity(), SettingsActivity.class);
+                intent = new Intent(getActivity(), SettingsActivity.class);
+                startActivity(intent);
+
+                return true;
+            case R.id.action_favorites:
+                intent = new Intent(getActivity(), FavoritesActivity.class);
                 startActivity(intent);
 
                 return true;
