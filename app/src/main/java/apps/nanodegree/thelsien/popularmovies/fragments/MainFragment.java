@@ -118,6 +118,6 @@ public class MainFragment extends Fragment
     }
 
     public interface MovieClickListener {
-        public void onMovieItemClicked(Movie movie);
+        void onMovieItemClicked(Movie movie);
     }
 }

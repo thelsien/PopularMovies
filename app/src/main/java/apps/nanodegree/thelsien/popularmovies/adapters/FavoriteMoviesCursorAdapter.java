@@ -2,6 +2,7 @@ package apps.nanodegree.thelsien.popularmovies.adapters;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.net.Uri;
 import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,9 +56,11 @@ public class FavoriteMoviesCursorAdapter extends CursorAdapter {
     }
 
     @Override
-    public Long getItem(int position) {
+    public Uri getItem(int position) {
         Cursor c = (Cursor) super.getItem(position);
 
-        return c.getLong(c.getColumnIndex(MovieContract.MovieEntry._ID));
+        return MovieContract.MovieEntry.CONTENT_URI.buildUpon()
+                .appendPath(String.valueOf(c.getLong(c.getColumnIndex(MovieContract.MovieEntry._ID))))
+                .build();
     }
 }

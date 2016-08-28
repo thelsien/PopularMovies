@@ -3,6 +3,7 @@ package apps.nanodegree.thelsien.popularmovies.fragments;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -48,7 +49,8 @@ public class FavoritesFragment extends Fragment {
 
     @Nullable
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_favorites, container, false);
 
         Cursor c = getActivity().getContentResolver().query(
@@ -72,13 +74,25 @@ public class FavoritesFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(mAdapter.getItem(position)));
+                if (getActivity() instanceof FavoriteMovieClickedListener) {
+                    ((FavoriteMovieClickedListener) getActivity())
+                            .onFavoriteMovieClicked(mAdapter.getItem(position));
+                } else {
+                    Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                    intent.putExtra(
+                            getString(R.string.intent_extra_movie_uri),
+                            mAdapter.getItem(position)
+                    );
 
-                startActivity(intent);
+                    startActivity(intent);
+                }
             }
         });
 
         return rootView;
+    }
+
+    public interface FavoriteMovieClickedListener {
+        void onFavoriteMovieClicked(Uri uri);
     }
 }
