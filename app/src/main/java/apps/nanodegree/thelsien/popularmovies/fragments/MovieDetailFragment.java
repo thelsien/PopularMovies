@@ -128,6 +128,10 @@ public class MovieDetailFragment extends Fragment
                             mIsFavorite = false;
                         }
                     }
+
+                    if (getActivity() instanceof OnFavoriteMovieModifiedListener) {
+                        ((OnFavoriteMovieModifiedListener) getActivity()).onFavoriteModified();
+                    }
                 }
             });
         } else {
@@ -187,19 +191,19 @@ public class MovieDetailFragment extends Fragment
         if (getView() != null) {
             TextView runtimeView = (TextView) getView().findViewById(R.id.tv_runtime);
             runtimeView.setText(String.format(getString(R.string.runtime_placeholder), mMovie.runTime));
-        }
 
-        mVideosAdapter.changeAdapterData(result.optJSONArray("videos"));
+            mVideosAdapter.changeAdapterData(result.optJSONArray("videos"));
 
-        LinearLayout reviewsContainer = (LinearLayout) getView().findViewById(R.id.container_reviews);
-        JSONArray reviews = result.optJSONArray("reviews");
-        for (int i = 0; i < reviews.length(); i++) {
-            JSONObject review = reviews.optJSONObject(i);
-            View reviewRowView = LayoutInflater.from(getActivity()).inflate(R.layout.list_review_row_item, reviewsContainer, false);
-            ((TextView) reviewRowView.findViewById(R.id.tv_review_author)).setText(review.optString("author"));
-            ((TextView) reviewRowView.findViewById(R.id.tv_review_text)).setText(review.optString("content"));
+            LinearLayout reviewsContainer = (LinearLayout) getView().findViewById(R.id.container_reviews);
+            JSONArray reviews = result.optJSONArray("reviews");
+            for (int i = 0; i < reviews.length(); i++) {
+                JSONObject review = reviews.optJSONObject(i);
+                View reviewRowView = LayoutInflater.from(getActivity()).inflate(R.layout.list_review_row_item, reviewsContainer, false);
+                ((TextView) reviewRowView.findViewById(R.id.tv_review_author)).setText(review.optString("author"));
+                ((TextView) reviewRowView.findViewById(R.id.tv_review_text)).setText(review.optString("content"));
 
-            reviewsContainer.addView(reviewRowView);
+                reviewsContainer.addView(reviewRowView);
+            }
         }
     }
 
@@ -235,5 +239,9 @@ public class MovieDetailFragment extends Fragment
         }
 
         return isFavorite;
+    }
+
+    public interface OnFavoriteMovieModifiedListener {
+        void onFavoriteModified();
     }
 }

@@ -14,7 +14,8 @@ import apps.nanodegree.thelsien.popularmovies.fragments.MovieDetailFragment;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 
 public class MainActivity extends AppCompatActivity
-        implements MainFragment.MovieClickListener, FavoritesFragment.FavoriteMovieClickedListener {
+        implements MainFragment.MovieClickListener, FavoritesFragment.FavoriteMovieClickedListener,
+        MovieDetailFragment.OnFavoriteMovieModifiedListener {
 
     private static final String MAIN_FRAGMENT_TAG = "main_fragment_tag";
     private static final String DETAIL_FRAGMENT_TAG = "movie_detail_fragment_tag";
@@ -122,6 +123,16 @@ public class MainActivity extends AppCompatActivity
             intent.putExtra(getString(R.string.intent_extra_movie_uri), uri);
 
             startActivity(intent);
+        }
+    }
+
+    @Override
+    public void onFavoriteModified() {
+        if (mTwoPane) {
+            Fragment f = getSupportFragmentManager().findFragmentByTag(MAIN_FRAGMENT_TAG);
+            if (f instanceof FavoritesFragment) {
+                ((FavoritesFragment) f).onFavoritesChanged();
+            }
         }
     }
 }

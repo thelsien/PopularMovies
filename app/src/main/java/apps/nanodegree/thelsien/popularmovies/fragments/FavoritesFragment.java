@@ -35,7 +35,7 @@ public class FavoritesFragment extends Fragment {
         }
     }
 
-    private void onFavoritesChanged() {
+    public void onFavoritesChanged() {
         Cursor c = getActivity().getContentResolver().query(
                 MovieContract.MovieEntry.CONTENT_URI,
                 null,
