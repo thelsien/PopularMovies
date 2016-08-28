@@ -10,6 +10,7 @@ import android.widget.ImageView;
 
 import com.squareup.picasso.Picasso;
 
+import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
 
@@ -45,7 +46,9 @@ public class FavoriteMoviesCursorAdapter extends CursorAdapter {
         ViewHolder vh = (ViewHolder) view.getTag();
 
         Picasso.with(context)
-                .load(cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL)))
+                .load(Globals.POSTER_IMAGE_BASE_URL + "/" + cursor.getString(
+                        cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL))
+                )
                 .placeholder(R.drawable.default_movie_poster)
                 .error(R.drawable.default_movie_poster)
                 .into(vh.posterView);

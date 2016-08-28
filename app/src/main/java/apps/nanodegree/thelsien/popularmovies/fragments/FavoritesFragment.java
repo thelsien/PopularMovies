@@ -1,5 +1,6 @@
 package apps.nanodegree.thelsien.popularmovies.fragments;
 
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -10,8 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.GridView;
-import android.widget.Toast;
 
+import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.adapters.FavoriteMoviesCursorAdapter;
 import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
@@ -34,8 +35,8 @@ public class FavoritesFragment extends Fragment {
         );
 
         mAdapter = new FavoriteMoviesCursorAdapter(getActivity(), c, 0);
-
         GridView gridView = (GridView) rootView.findViewById(R.id.gv_movies);
+
         if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
             gridView.setNumColumns(2);
         } else if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
@@ -45,11 +46,10 @@ public class FavoritesFragment extends Fragment {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-//                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-//                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(mAdapter.getItem(position)));
-//
-//                startActivity(intent);
-                Toast.makeText(getActivity(), "Movie id: " + mAdapter.getItem(position), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
+                intent.putExtra(getString(R.string.intent_extra_movie_uri), MovieContract.MovieEntry.getMovieUriWithId(mAdapter.getItem(position)));
+
+                startActivity(intent);
             }
         });
 

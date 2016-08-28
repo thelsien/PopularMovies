@@ -3,6 +3,7 @@ package apps.nanodegree.thelsien.popularmovies.fragments;
 import android.app.Fragment;
 import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,7 +27,6 @@ import org.json.JSONObject;
 
 import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.R;
-import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.adapters.VideosAdapter;
 import apps.nanodegree.thelsien.popularmovies.background.MovieQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
@@ -44,7 +44,30 @@ public class MovieDetailFragment extends Fragment
         super.onCreate(savedInstanceState);
 
         Intent intent = getActivity().getIntent();
-        mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
+        if (intent.hasExtra(getString(R.string.intent_extra_movie))) {
+            mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
+        } else {
+            Cursor c = getActivity().getContentResolver().query(
+                    (Uri) intent.getParcelableExtra(getString(R.string.intent_extra_movie_uri)),
+                    null,
+                    null,
+                    null,
+                    null
+            );
+
+            if (c != null) {
+                c.moveToFirst();
+
+                mMovie = new Movie(
+                        c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)),
+                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)),
+                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL)),
+                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_SYNOPSIS)),
+                        c.getDouble(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_AVG)),
+                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE))
+                );
+            }
+        }
     }
 
     @Override
@@ -63,6 +86,7 @@ public class MovieDetailFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container);
 
         RecyclerView videosView = (RecyclerView) rootView.findViewById(R.id.rv_videos);
@@ -78,7 +102,7 @@ public class MovieDetailFragment extends Fragment
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.tv_release_date);
 
         Picasso.with(getActivity())
-                .load(MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart)
+                .load(Globals.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart)
                 .placeholder(R.drawable.default_movie_poster)
                 .into(posterView);
         titleView.setText(mMovie.originalTitle);
@@ -100,7 +124,7 @@ public class MovieDetailFragment extends Fragment
                 ContentValues cv = new ContentValues();
                 cv.put(MovieContract.MovieEntry._ID, mMovie.id);
                 cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
-                cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, MoviesAdapter.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart);
+                cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, mMovie.posterImageUrlPart);
                 cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
                 cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
                 cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
@@ -134,8 +158,8 @@ public class MovieDetailFragment extends Fragment
         for (int i = 0; i < reviews.length(); i++) {
             JSONObject review = reviews.optJSONObject(i);
             View reviewRowView = LayoutInflater.from(getActivity()).inflate(R.layout.list_review_row_item, reviewsContainer, false);
-            ((TextView)reviewRowView.findViewById(R.id.tv_review_author)).setText(review.optString("author"));
-            ((TextView)reviewRowView.findViewById(R.id.tv_review_text)).setText(review.optString("content"));
+            ((TextView) reviewRowView.findViewById(R.id.tv_review_author)).setText(review.optString("author"));
+            ((TextView) reviewRowView.findViewById(R.id.tv_review_text)).setText(review.optString("content"));
 
             reviewsContainer.addView(reviewRowView);
         }

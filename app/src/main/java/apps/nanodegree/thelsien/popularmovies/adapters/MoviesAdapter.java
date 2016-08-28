@@ -12,12 +12,11 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
+import apps.nanodegree.thelsien.popularmovies.Globals;
 import apps.nanodegree.thelsien.popularmovies.R;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 
 public class MoviesAdapter extends ArrayAdapter<Movie> {
-
-    public static final String POSTER_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w342";
 
     private static final String LOG_TAG = "MoviesAdapter";
 
@@ -42,7 +41,7 @@ public class MoviesAdapter extends ArrayAdapter<Movie> {
         ImageView moviePosterView = (ImageView) convertView.findViewById(R.id.iv_movie_poster);
         if (movieObject != null) {
             Picasso.with(getContext())
-                    .load(POSTER_IMAGE_BASE_URL + movieObject.posterImageUrlPart)
+                    .load(Globals.POSTER_IMAGE_BASE_URL + movieObject.posterImageUrlPart)
                     .placeholder(R.drawable.default_movie_poster)
                     .into(moviePosterView);
         }
