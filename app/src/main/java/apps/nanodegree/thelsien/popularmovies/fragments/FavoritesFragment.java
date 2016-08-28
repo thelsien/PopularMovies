@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,7 +20,31 @@ import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
 
 public class FavoritesFragment extends Fragment {
 
+    private static final String LOG_TAG = FavoritesFragment.class.getName();
     private FavoriteMoviesCursorAdapter mAdapter;
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        Log.d(LOG_TAG, "onResume called");
+
+        if (mAdapter != null) {
+            onFavoritesChanged();
+        }
+    }
+
+    private void onFavoritesChanged() {
+        Cursor c = getActivity().getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null
+        );
+
+        mAdapter.swapCursor(c);
+    }
 
     @Nullable
     @Override
@@ -42,6 +67,7 @@ public class FavoritesFragment extends Fragment {
         } else if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_USER) {
             gridView.setNumColumns(4);
         }
+        gridView.setEmptyView(rootView.findViewById(R.id.empty_list));
         gridView.setAdapter(mAdapter);
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

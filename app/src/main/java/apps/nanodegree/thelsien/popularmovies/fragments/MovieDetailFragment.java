@@ -2,7 +2,6 @@ package apps.nanodegree.thelsien.popularmovies.fragments;
 
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.database.Cursor;
 import android.net.NetworkInfo;
 import android.net.Uri;
@@ -42,6 +41,7 @@ public class MovieDetailFragment extends Fragment
     private Movie mMovie;
     private static final String LOG_TAG = "MovieDetailFragment";
     private VideosAdapter mVideosAdapter;
+    private boolean mIsFavorite;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -70,7 +70,7 @@ public class MovieDetailFragment extends Fragment
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
         RecyclerView videosView = (RecyclerView) rootView.findViewById(R.id.rv_videos);
-        Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
+        final Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
         ImageView posterView = (ImageView) rootView.findViewById(R.id.iv_movie_poster);
         TextView titleView = (TextView) rootView.findViewById(R.id.tv_movie_title);
         TextView plotView = (TextView) rootView.findViewById(R.id.tv_movie_plot_synopsis);
@@ -92,23 +92,42 @@ public class MovieDetailFragment extends Fragment
             voteView.setText(String.format(getString(R.string.vote_average_placeholder), String.valueOf(mMovie.voteAverage)));
             releaseDateView.setText(mMovie.releaseDate);
 
+            mIsFavorite = getIsMovieFavorite();
+            if (mIsFavorite) {
+                addToFavorites.setText(R.string.btn_remove_from_favorites);
+            }
             addToFavorites.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    ContentValues cv = new ContentValues();
-                    cv.put(MovieContract.MovieEntry._ID, mMovie.id);
-                    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
-                    cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, mMovie.posterImageUrlPart);
-                    cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
-                    cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
-                    cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
-                    cv.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, mMovie.voteAverage);
+                    if (!mIsFavorite) {
+                        ContentValues cv = new ContentValues();
+                        cv.put(MovieContract.MovieEntry._ID, mMovie.id);
+                        cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
+                        cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, mMovie.posterImageUrlPart);
+                        cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
+                        cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
+                        cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
+                        cv.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, mMovie.voteAverage);
 
-                    Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+                        Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
 
-                    Log.d(LOG_TAG, "inserted uri: " + insertedUri);
+                        Log.d(LOG_TAG, "inserted uri: " + insertedUri);
 
-                    Toast.makeText(getActivity(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getActivity(), R.string.toast_added_to_favs, Toast.LENGTH_SHORT).show();
+                        addToFavorites.setText(R.string.btn_remove_from_favorites);
+                        mIsFavorite = true;
+                    } else {
+                        int deletedRows = getActivity().getContentResolver().delete(
+                                MovieContract.MovieEntry.CONTENT_URI,
+                                MovieContract.MovieEntry._ID + " = ?",
+                                new String[]{String.valueOf(mMovie.id)}
+                        );
+                        if (deletedRows > 0) {
+                            Toast.makeText(getActivity(), R.string.toast_removed_from_fav, Toast.LENGTH_SHORT).show();
+                            addToFavorites.setText(R.string.btn_add_to_favorites);
+                            mIsFavorite = false;
+                        }
+                    }
                 }
             });
         } else {
@@ -128,16 +147,10 @@ public class MovieDetailFragment extends Fragment
 
     private void createMovieObject() {
         Bundle args = getArguments();
-        Intent intent = getActivity().getIntent();
-
         if (args != null && args.getParcelable(getString(R.string.intent_extra_movie)) != null) {
             mMovie = args.getParcelable(getString(R.string.intent_extra_movie));
         } else if (args != null && args.getParcelable(getString(R.string.intent_extra_movie_uri)) != null) {
             createMovieFromUri((Uri) args.getParcelable(getString(R.string.intent_extra_movie_uri)));
-        } else if (intent.hasExtra(getString(R.string.intent_extra_movie))) {
-            mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
-        } else if (intent.hasExtra(getString(R.string.intent_extra_movie_uri))) {
-            createMovieFromUri((Uri) intent.getParcelableExtra(getString(R.string.intent_extra_movie_uri)));
         }
     }
 
@@ -202,5 +215,25 @@ public class MovieDetailFragment extends Fragment
 
         f.setArguments(args);
         return f;
+    }
+
+    public boolean getIsMovieFavorite() {
+        boolean isFavorite = false;
+        Cursor c = getActivity().getContentResolver().query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                MovieContract.MovieEntry._ID + " = ?",
+                new String[]{String.valueOf(mMovie.id)},
+                null
+        );
+
+        if (c != null) {
+            c.moveToFirst();
+
+            isFavorite = !c.isAfterLast();
+            c.close();
+        }
+
+        return isFavorite;
     }
 }
