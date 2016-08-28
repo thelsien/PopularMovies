@@ -1,6 +1,5 @@
 package apps.nanodegree.thelsien.popularmovies.fragments;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.net.NetworkInfo;
@@ -9,9 +8,6 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -24,11 +20,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import apps.nanodegree.thelsien.popularmovies.FavoritesActivity;
 import apps.nanodegree.thelsien.popularmovies.Globals;
-import apps.nanodegree.thelsien.popularmovies.MovieDetailsActivity;
 import apps.nanodegree.thelsien.popularmovies.R;
-import apps.nanodegree.thelsien.popularmovies.SettingsActivity;
 import apps.nanodegree.thelsien.popularmovies.adapters.MoviesAdapter;
 import apps.nanodegree.thelsien.popularmovies.background.MoviesListQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
@@ -38,13 +31,6 @@ public class MainFragment extends Fragment
 
     private static final String LOG_TAG = "MainFragment";
     private MoviesAdapter mAdapter;
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setHasOptionsMenu(true);
-    }
 
     @Override
     public void onStart() {
@@ -77,10 +63,7 @@ public class MainFragment extends Fragment
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent intent = new Intent(getActivity(), MovieDetailsActivity.class);
-                intent.putExtra(getString(R.string.intent_extra_movie), mAdapter.getItem(position));
-
-                startActivity(intent);
+                ((MovieClickListener)getActivity()).onMovieItemClicked(mAdapter.getItem(position));
             }
         });
 
@@ -91,32 +74,6 @@ public class MainFragment extends Fragment
         }
 
         return rootView;
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.main, menu);
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        Intent intent;
-
-        switch (id) {
-            case R.id.action_settings:
-                intent = new Intent(getActivity(), SettingsActivity.class);
-                startActivity(intent);
-
-                return true;
-            case R.id.action_favorites:
-                intent = new Intent(getActivity(), FavoritesActivity.class);
-                startActivity(intent);
-
-                return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     private void updateMoviesList() {
@@ -158,5 +115,9 @@ public class MainFragment extends Fragment
             );
             mAdapter.add(movie);
         }
+    }
+
+    public interface MovieClickListener {
+        public void onMovieItemClicked(Movie movie);
     }
 }

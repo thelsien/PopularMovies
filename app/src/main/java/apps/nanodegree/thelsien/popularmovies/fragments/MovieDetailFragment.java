@@ -1,11 +1,13 @@
 package apps.nanodegree.thelsien.popularmovies.fragments;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
@@ -44,32 +46,6 @@ public class MovieDetailFragment extends Fragment
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        Intent intent = getActivity().getIntent();
-        if (intent.hasExtra(getString(R.string.intent_extra_movie))) {
-            mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
-        } else if (intent.hasExtra(getString(R.string.intent_extra_movie_uri))) {
-            Cursor c = getActivity().getContentResolver().query(
-                    (Uri) intent.getParcelableExtra(getString(R.string.intent_extra_movie_uri)),
-                    null,
-                    null,
-                    null,
-                    null
-            );
-
-            if (c != null) {
-                c.moveToFirst();
-
-                mMovie = new Movie(
-                        c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)),
-                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)),
-                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL)),
-                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_SYNOPSIS)),
-                        c.getDouble(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_AVG)),
-                        c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE))
-                );
-            }
-        }
     }
 
     @Override
@@ -88,6 +64,8 @@ public class MovieDetailFragment extends Fragment
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        createMovieObject();
 
         View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
@@ -148,6 +126,46 @@ public class MovieDetailFragment extends Fragment
         return rootView;
     }
 
+    private void createMovieObject() {
+        Bundle args = getArguments();
+        Intent intent = getActivity().getIntent();
+
+        if (args != null && args.getParcelable(getString(R.string.intent_extra_movie)) != null) {
+            mMovie = args.getParcelable(getString(R.string.intent_extra_movie));
+        } else if (args != null && args.getParcelable(getString(R.string.intent_extra_movie_uri)) != null) {
+            createMovieFromUri((Uri) args.getParcelable(getString(R.string.intent_extra_movie_uri)));
+        } else if (intent.hasExtra(getString(R.string.intent_extra_movie))) {
+            mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
+        } else if (intent.hasExtra(getString(R.string.intent_extra_movie_uri))) {
+            createMovieFromUri((Uri) intent.getParcelableExtra(getString(R.string.intent_extra_movie_uri)));
+        }
+    }
+
+    private void createMovieFromUri(Uri uri) {
+        Cursor c = getActivity().getContentResolver().query(
+                uri,
+                null,
+                null,
+                null,
+                null
+        );
+
+        if (c != null) {
+            c.moveToFirst();
+
+            mMovie = new Movie(
+                    c.getInt(c.getColumnIndex(MovieContract.MovieEntry._ID)),
+                    c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE)),
+                    c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_IMAGE_URL)),
+                    c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_SYNOPSIS)),
+                    c.getDouble(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_VOTE_AVG)),
+                    c.getString(c.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE))
+            );
+
+            c.close();
+        }
+    }
+
     @Override
     public void onMovieQueryResult(JSONObject result) {
         Log.d(LOG_TAG, result.toString());
@@ -170,5 +188,19 @@ public class MovieDetailFragment extends Fragment
 
             reviewsContainer.addView(reviewRowView);
         }
+    }
+
+    public static Fragment newInstance(Context context, Parcelable movieParcelable) {
+        MovieDetailFragment f = new MovieDetailFragment();
+        Bundle args = new Bundle();
+
+        if (movieParcelable instanceof Movie) {
+            args.putParcelable(context.getString(R.string.intent_extra_movie), movieParcelable);
+        } else if (movieParcelable instanceof Uri) {
+            args.putParcelable(context.getString(R.string.intent_extra_movie_uri), movieParcelable);
+        }
+
+        f.setArguments(args);
+        return f;
     }
 }
