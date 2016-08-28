@@ -36,8 +36,8 @@ public class VideosAdapter extends RecyclerView.Adapter<VideosAdapter.VideoViewH
     public void onBindViewHolder(VideoViewHolder videoHolder, final int position) {
         Picasso.with(mContext)
                 .load("http://img.youtube.com/vi/" + mVideos.optJSONObject(position).optString("key") + "/0.jpg")
-                .placeholder(R.drawable.default_movie_poster)
-                .error(R.drawable.default_movie_poster)
+                .placeholder(R.drawable.video_placeholder)
+                .error(R.drawable.video_placeholder)
                 .into(videoHolder.previewImageView);
         videoHolder.videoTitleView.setText(mVideos.optJSONObject(position).optString("name"));
 

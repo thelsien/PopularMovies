@@ -26,6 +26,8 @@
     <string name="toast_removed_from_fav">Removed from favorites</string>
     <string name="toast_added_to_favs">Added to favorites</string>
     <string name="empty_list">The list is empty.</string>
+    <string name="grid_position_key">grid_view_position_key</string>
+    <string name="video_description">A video for the selected movie</string>
 
     <string-array name="pref_sort_by_entries">
         <item>Popularity</item>

@@ -3,17 +3,22 @@
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:gravity="center_horizontal"
-              android:orientation="vertical">
+              android:orientation="vertical"
+              android:padding="@dimen/padding_4dp">
 
     <ImageView
         android:id="@+id/iv_video_preview"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="240dp"
+        android:layout_height="180dp"
         android:adjustViewBounds="true"
-        android:scaleType="center"/>
+        android:contentDescription="@string/video_description"
+        android:scaleType="centerCrop"/>
 
     <TextView
         android:id="@+id/tv_video_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/padding_4dp"
+        android:gravity="center_horizontal"
+        android:lines="2"/>
 </LinearLayout>

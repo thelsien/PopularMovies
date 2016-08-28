@@ -31,6 +31,7 @@ public class MainFragment extends Fragment
 
     private static final String LOG_TAG = "MainFragment";
     private MoviesAdapter mAdapter;
+    private int mPosition = GridView.INVALID_POSITION;
 
     @Override
     public void onStart() {
@@ -38,10 +39,23 @@ public class MainFragment extends Fragment
         updateMoviesList();
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        if (mPosition != GridView.INVALID_POSITION) {
+            outState.putInt(getString(R.string.grid_position_key), mPosition);
+        }
+        super.onSaveInstanceState(outState);
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
+        if (savedInstanceState != null) {
+            mPosition = savedInstanceState.getInt(getString(R.string.grid_position_key), GridView.INVALID_POSITION);
+        }
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         Button refreshButton = (Button) rootView.findViewById(R.id.btn_refresh);
@@ -63,9 +77,15 @@ public class MainFragment extends Fragment
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                ((MovieClickListener)getActivity()).onMovieItemClicked(mAdapter.getItem(position));
+                mPosition = position;
+                ((MovieClickListener) getActivity()).onMovieItemClicked(mAdapter.getItem(position));
             }
         });
+
+        if (mPosition != GridView.INVALID_POSITION) {
+            gridView.smoothScrollToPosition(mPosition);
+            gridView.setSelection(mPosition);
+        }
 
         NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
         if (netInfo == null || !netInfo.isConnected()) {

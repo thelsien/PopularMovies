@@ -22,7 +22,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="@dimen/padding_16dp">
+            android:paddingLeft="@dimen/padding_16dp"
+            android:paddingRight="@dimen/padding_16dp">
 
             <ImageView
                 android:id="@+id/iv_movie_poster"
@@ -61,9 +62,9 @@
 
                 <Button
                     android:id="@+id/btn_add_to_favorites"
-                    android:text="@string/add_to_favorites"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_to_favorites"/>
 
             </LinearLayout>
 
@@ -73,21 +74,30 @@
             android:id="@+id/tv_movie_plot_synopsis"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingEnd="@dimen/padding_16dp"
+            android:paddingBottom="@dimen/padding_8dp"
             android:paddingLeft="@dimen/padding_16dp"
             android:paddingRight="@dimen/padding_16dp"
-            android:paddingStart="@dimen/padding_16dp"/>
+            android:paddingTop="@dimen/padding_8dp"
+            android:textSize="@dimen/text_14sp"/>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/rv_videos"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:paddingBottom="@dimen/padding_8dp"
+            android:paddingLeft="@dimen/padding_16dp"
+            android:paddingRight="@dimen/padding_16dp"
+            android:paddingTop="@dimen/padding_8dp"/>
 
         <LinearLayout
             android:id="@+id/container_reviews"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"/>
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/padding_8dp"
+            android:paddingLeft="@dimen/padding_16dp"
+            android:paddingRight="@dimen/padding_16dp"
+            android:paddingTop="@dimen/padding_8dp"/>
 
     </LinearLayout>
 </android.support.v4.widget.NestedScrollView>
