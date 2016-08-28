@@ -1,6 +1,5 @@
 package apps.nanodegree.thelsien.popularmovies.fragments;
 
-import android.app.Fragment;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -8,6 +7,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -32,6 +32,8 @@ import apps.nanodegree.thelsien.popularmovies.background.MovieQueryAsyncTask;
 import apps.nanodegree.thelsien.popularmovies.model.Movie;
 import apps.nanodegree.thelsien.popularmovies.model.MovieContract;
 
+import static android.view.View.GONE;
+
 public class MovieDetailFragment extends Fragment
         implements MovieQueryAsyncTask.MovieQueryAsyncTaskListener {
 
@@ -46,7 +48,7 @@ public class MovieDetailFragment extends Fragment
         Intent intent = getActivity().getIntent();
         if (intent.hasExtra(getString(R.string.intent_extra_movie))) {
             mMovie = intent.getParcelableExtra(getString(R.string.intent_extra_movie));
-        } else {
+        } else if (intent.hasExtra(getString(R.string.intent_extra_movie_uri))) {
             Cursor c = getActivity().getContentResolver().query(
                     (Uri) intent.getParcelableExtra(getString(R.string.intent_extra_movie_uri)),
                     null,
@@ -76,7 +78,7 @@ public class MovieDetailFragment extends Fragment
 
         NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
 
-        if (netInfo != null && netInfo.isConnected()) {
+        if (netInfo != null && netInfo.isConnected() && mMovie != null) {
             MovieQueryAsyncTask movieQueryAsyncTask = new MovieQueryAsyncTask(this);
             movieQueryAsyncTask.execute(mMovie.id);
         }
@@ -87,56 +89,61 @@ public class MovieDetailFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        View rootView = inflater.inflate(R.layout.fragment_movie_detail, container);
+        View rootView = inflater.inflate(R.layout.fragment_movie_detail, container, false);
 
         RecyclerView videosView = (RecyclerView) rootView.findViewById(R.id.rv_videos);
-        LinearLayoutManager videosLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
-        videosView.setLayoutManager(videosLayoutManager);
-        mVideosAdapter = new VideosAdapter(getActivity(), new JSONArray());
-        videosView.setAdapter(mVideosAdapter);
-
+        Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
         ImageView posterView = (ImageView) rootView.findViewById(R.id.iv_movie_poster);
         TextView titleView = (TextView) rootView.findViewById(R.id.tv_movie_title);
         TextView plotView = (TextView) rootView.findViewById(R.id.tv_movie_plot_synopsis);
         TextView voteView = (TextView) rootView.findViewById(R.id.tv_vote_avg);
         TextView releaseDateView = (TextView) rootView.findViewById(R.id.tv_release_date);
+        LinearLayoutManager videosLayoutManager = new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false);
 
-        Picasso.with(getActivity())
-                .load(Globals.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart)
-                .placeholder(R.drawable.default_movie_poster)
-                .into(posterView);
-        titleView.setText(mMovie.originalTitle);
-        plotView.setText(mMovie.plotSynopsis);
-        voteView.setText(String.format(getString(R.string.vote_average_placeholder), String.valueOf(mMovie.voteAverage)));
-        releaseDateView.setText(mMovie.releaseDate);
+        videosView.setLayoutManager(videosLayoutManager);
+        mVideosAdapter = new VideosAdapter(getActivity(), new JSONArray());
+        videosView.setAdapter(mVideosAdapter);
+
+        if (mMovie != null) {
+            Picasso.with(getActivity())
+                    .load(Globals.POSTER_IMAGE_BASE_URL + mMovie.posterImageUrlPart)
+                    .placeholder(R.drawable.default_movie_poster)
+                    .into(posterView);
+            titleView.setText(mMovie.originalTitle);
+            plotView.setText(mMovie.plotSynopsis);
+            voteView.setText(String.format(getString(R.string.vote_average_placeholder), String.valueOf(mMovie.voteAverage)));
+            releaseDateView.setText(mMovie.releaseDate);
+
+            addToFavorites.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ContentValues cv = new ContentValues();
+                    cv.put(MovieContract.MovieEntry._ID, mMovie.id);
+                    cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
+                    cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, mMovie.posterImageUrlPart);
+                    cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
+                    cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
+                    cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
+                    cv.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, mMovie.voteAverage);
+
+                    Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+
+                    Log.d(LOG_TAG, "inserted uri: " + insertedUri);
+
+                    Toast.makeText(getActivity(), "Added to favorites", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            addToFavorites.setVisibility(GONE);
+            titleView.setVisibility(GONE);
+        }
 
         NetworkInfo netInfo = Globals.getNetworkInfo(getActivity());
 
         if (netInfo == null || !netInfo.isConnected()) {
             TextView runtimeView = (TextView) rootView.findViewById(R.id.tv_runtime);
-            runtimeView.setVisibility(View.GONE);
+            runtimeView.setVisibility(GONE);
         }
-
-        Button addToFavorites = (Button) rootView.findViewById(R.id.btn_add_to_favorites);
-        addToFavorites.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ContentValues cv = new ContentValues();
-                cv.put(MovieContract.MovieEntry._ID, mMovie.id);
-                cv.put(MovieContract.MovieEntry.COLUMN_MOVIE_TITLE, mMovie.originalTitle);
-                cv.put(MovieContract.MovieEntry.COLUMN_IMAGE_URL, mMovie.posterImageUrlPart);
-                cv.put(MovieContract.MovieEntry.COLUMN_DURATION, mMovie.runTime);
-                cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.releaseDate);
-                cv.put(MovieContract.MovieEntry.COLUMN_SYNOPSIS, mMovie.plotSynopsis);
-                cv.put(MovieContract.MovieEntry.COLUMN_VOTE_AVG, mMovie.voteAverage);
-
-                Uri insertedUri = getActivity().getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
-
-                Log.d(LOG_TAG, "inserted uri: " + insertedUri);
-
-                Toast.makeText(getActivity(), "Added to favorites", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         return rootView;
     }
