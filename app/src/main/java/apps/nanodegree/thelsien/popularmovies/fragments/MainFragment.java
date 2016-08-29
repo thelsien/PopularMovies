@@ -34,16 +34,19 @@ public class MainFragment extends Fragment
     private int mPosition = GridView.INVALID_POSITION;
 
     @Override
-    public void onStart() {
-        super.onStart();
-        updateMoviesList();
-    }
-
-    @Override
     public void onSaveInstanceState(Bundle outState) {
         if (mPosition != GridView.INVALID_POSITION) {
             outState.putInt(getString(R.string.grid_position_key), mPosition);
         }
+
+        if (!mAdapter.isEmpty()) {
+            ArrayList<Movie> moviesList = new ArrayList<>();
+            for (int i = 0; i < mAdapter.getCount(); i++) {
+                moviesList.add(mAdapter.getItem(i));
+            }
+            outState.putParcelableArrayList(getString(R.string.instancestate_movies_list_key), moviesList);
+        }
+
         super.onSaveInstanceState(outState);
     }
 
@@ -54,6 +57,13 @@ public class MainFragment extends Fragment
 
         if (savedInstanceState != null) {
             mPosition = savedInstanceState.getInt(getString(R.string.grid_position_key), GridView.INVALID_POSITION);
+            ArrayList<Movie> moviesList = savedInstanceState.getParcelableArrayList(getString(R.string.instancestate_movies_list_key));
+            mAdapter = new MoviesAdapter(getActivity(), moviesList);
+        } else {
+            if (mAdapter == null || mAdapter.isEmpty()) {
+                mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
+                updateMoviesList();
+            }
         }
 
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
@@ -66,7 +76,6 @@ public class MainFragment extends Fragment
             }
         });
 
-        mAdapter = new MoviesAdapter(getActivity(), new ArrayList<Movie>());
         GridView gridView = (GridView) rootView.findViewById(R.id.gv_movies);
         if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
             gridView.setNumColumns(2);
@@ -135,6 +144,22 @@ public class MainFragment extends Fragment
             );
             mAdapter.add(movie);
         }
+
+        if (getView() != null) {
+            ((GridView) getView().findViewById(R.id.gv_movies)).smoothScrollToPosition(mPosition);
+        }
+    }
+
+    public int getGridPosition() {
+        return mPosition;
+    }
+
+    public void setGridPosition(int mainGridPosition) {
+        mPosition = mainGridPosition;
+    }
+
+    public void onSortingChanged() {
+        updateMoviesList();
     }
 
     public interface MovieClickListener {

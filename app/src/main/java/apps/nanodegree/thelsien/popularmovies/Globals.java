@@ -1,8 +1,10 @@
 package apps.nanodegree.thelsien.popularmovies;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 
 public class Globals {
     public static final String MOVIE_DB_API_KEY = "YOURAPIKEY";
@@ -14,5 +16,10 @@ public class Globals {
         ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
         return connectivityManager.getActiveNetworkInfo();
+    }
+
+    public static String getSortMainListBy(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(context.getString(R.string.pref_sort_by_key), context.getString(R.string.pref_sort_by_default));
     }
 }

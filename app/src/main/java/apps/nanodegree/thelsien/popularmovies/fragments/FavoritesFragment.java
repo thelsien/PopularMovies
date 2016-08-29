@@ -5,6 +5,7 @@ import android.content.pm.ActivityInfo;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -44,6 +45,10 @@ public class FavoritesFragment extends Fragment {
                 null
         );
 
+        if (mAdapter == null) {
+            mAdapter = new FavoriteMoviesCursorAdapter(getActivity(), null, 0);
+        }
+
         mAdapter.swapCursor(c);
     }
 
@@ -53,15 +58,8 @@ public class FavoritesFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_favorites, container, false);
 
-        Cursor c = getActivity().getContentResolver().query(
-                MovieContract.MovieEntry.CONTENT_URI,
-                null,
-                null,
-                null,
-                null
-        );
+        onFavoritesChanged();
 
-        mAdapter = new FavoriteMoviesCursorAdapter(getActivity(), c, 0);
         GridView gridView = (GridView) rootView.findViewById(R.id.gv_movies);
 
         if (getResources().getConfiguration().orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {

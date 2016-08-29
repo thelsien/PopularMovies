@@ -28,6 +28,8 @@
     <string name="empty_list">The list is empty.</string>
     <string name="grid_position_key">grid_view_position_key</string>
     <string name="video_description">A video for the selected movie</string>
+    <string name="instancestate_movies_list_key">parcelable_movies_list</string>
+    <string name="instancestate_grid_position">instancesaved_grid_position_key</string>
 
     <string-array name="pref_sort_by_entries">
         <item>Popularity</item>
