@@ -7,7 +7,7 @@ import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 public class Globals {
-    public static final String MOVIE_DB_API_KEY = "YOURAPIKEY";
+    public static final String MOVIE_DB_API_KEY = "YOURAPIKEY"; // http://www.themoviedb.org
     public static final String MOVIE_DB_BASE_URL = "http://api.themoviedb.org/3/";
 
     public static final String POSTER_IMAGE_BASE_URL = "http://image.tmdb.org/t/p/w342";
